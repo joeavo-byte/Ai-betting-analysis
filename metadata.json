@@ -1,0 +1,6 @@
+{
+  "name": "ApexMatch AI - Big Match Predictor & Player Analytics",
+  "description": "Fetches upcoming blockbuster matches across football, basketball, and tennis, delivering AI-powered winner predictions and deep statistical player performance breakdowns.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
