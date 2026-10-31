@@ -145,3 +145,33 @@ export interface PredictionTrackRecord {
   modelConfidenceCategory: 'High' | 'Medium' | 'Value Play';
   keyInsight: string;
 }
+
+export interface VIPPricingPlan {
+  id: 'single_match' | 'weekend_vip' | 'monthly_all_access';
+  title: string;
+  badge: string;
+  usd: number;
+  ngn: number;
+  ghs: number;
+  kes: number;
+  zar: number;
+  description: string;
+  features: string[];
+}
+
+export interface VIPPaymentConfig {
+  paystackPublicKey: string;
+  whatsappChannelUrl: string;
+  currency: 'USD' | 'NGN' | 'GHS' | 'KES' | 'ZAR';
+  channelName: string;
+}
+
+export interface VIPAccessState {
+  isVIP: boolean;
+  unlockedMatches: string[]; // match IDs or ['all']
+  token?: string;
+  userEmail?: string;
+  planId?: string;
+  whatsappChannelUrl: string;
+  purchaseDate?: string;
+}

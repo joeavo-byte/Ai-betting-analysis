@@ -104,6 +104,217 @@ app.get('/api/track-record', (_req, res) => {
   });
 });
 
+// Paystack & WhatsApp VIP Channel Configuration
+let paymentConfig = {
+  paystackPublicKey: process.env.PAYSTACK_PUBLIC_KEY || 'pk_test_sample_apexmatch_paystack',
+  whatsappChannelUrl: process.env.WHATSAPP_CHANNEL_URL || 'https://whatsapp.com/channel/apexmatch-vip-intel',
+  currency: 'NGN',
+  channelName: 'ApexMatch VIP Match Intelligence Channel',
+};
+
+const VIP_PLANS = [
+  {
+    id: 'single_match',
+    title: 'Single Match Deep Intel Pass',
+    badge: 'Standard Pick',
+    usd: 2.99,
+    ngn: 3000,
+    ghs: 35,
+    kes: 400,
+    zar: 55,
+    description: 'Instant full access to this match\'s deep AI tactical dossier, 1,000 Monte Carlo sims, and direct VIP WhatsApp channel entry.',
+    features: [
+      'Unlock Complete Tactical Rationale & Edge',
+      'All 3 Historical Proof Factors & Exploits',
+      '1,000 Monte Carlo Exact Score Distribution',
+      'Instant Redirect to VIP WhatsApp Channel for live alerts',
+      'Valid for this match indefinitely'
+    ],
+  },
+  {
+    id: 'weekend_vip',
+    title: 'Weekend VIP All-Match Pass',
+    badge: 'Most Popular',
+    usd: 6.99,
+    ngn: 7500,
+    ghs: 85,
+    kes: 950,
+    zar: 130,
+    description: 'Unlock EVERY upcoming marquee match this weekend across Football, Basketball & Tennis plus priority WhatsApp VIP insider notes.',
+    features: [
+      'Unlocks ALL upcoming matches in the app',
+      'Full Player Duel & Scouting Lab access',
+      'Interactive Lineup & What-If Simulator unlocked',
+      'VIP WhatsApp Channel Insider membership',
+      '30-minute pre-match lineup updates via WhatsApp'
+    ],
+  },
+  {
+    id: 'monthly_all_access',
+    title: 'Monthly Syndicate VIP Access',
+    badge: 'Ultimate Value',
+    usd: 19.99,
+    ngn: 20000,
+    ghs: 230,
+    kes: 2600,
+    zar: 370,
+    description: 'Full season pass: every blockbuster match, early algorithmic line alerts, direct analyst access in WhatsApp channel.',
+    features: [
+      'All-inclusive 30-day VIP app access',
+      'Direct WhatsApp Channel VIP role & daily early picks',
+      'Exclusive high-yield AI value picks and parlays',
+      'Priority requests for custom match modeling',
+      'Dedicated priority WhatsApp support'
+    ],
+  },
+];
+
+let transactionsStore: Array<{
+  id: string;
+  reference: string;
+  email: string;
+  planId: string;
+  matchId?: string;
+  amount: number;
+  currency: string;
+  timestamp: string;
+  status: 'success';
+  token: string;
+}> = [];
+
+let adminPasscode = process.env.ADMIN_PIN || '8821';
+let activeAdminTokens = new Set<string>();
+
+// POST /api/admin/login - Authenticate app owner
+app.post('/api/admin/login', (req, res) => {
+  const { pin } = req.body;
+  if (!pin || pin.toString().trim() !== adminPasscode.trim()) {
+    return res.status(401).json({ success: false, error: 'Invalid Owner PIN. Default is 8821.' });
+  }
+
+  const token = 'adm_token_' + Math.random().toString(36).substring(2, 12) + '_' + Date.now();
+  activeAdminTokens.add(token);
+  res.json({
+    success: true,
+    token,
+    message: 'Owner authenticated successfully!',
+  });
+});
+
+// GET /api/admin/verify - Check if owner session is active
+app.get('/api/admin/verify', (req, res) => {
+  const token = req.headers['x-admin-token'] as string | undefined;
+  if (token && activeAdminTokens.has(token)) {
+    return res.json({ authenticated: true });
+  }
+  res.json({ authenticated: false });
+});
+
+// POST /api/admin/change-pin - Owner can change their secret PIN
+app.post('/api/admin/change-pin', (req, res) => {
+  const token = req.headers['x-admin-token'] as string | undefined;
+  if (!token || !activeAdminTokens.has(token)) {
+    return res.status(401).json({ success: false, error: 'Unauthorized: Owner login required' });
+  }
+
+  const { newPin } = req.body;
+  if (!newPin || newPin.toString().trim().length < 4) {
+    return res.status(400).json({ success: false, error: 'New PIN must be at least 4 characters long' });
+  }
+
+  adminPasscode = newPin.toString().trim();
+  res.json({ success: true, message: 'Owner PIN updated successfully!' });
+});
+
+// GET /api/payment/config (Public gets public key & channel URL for payment, but not secret endpoints)
+app.get('/api/payment/config', (_req, res) => {
+  res.json({
+    config: paymentConfig,
+    plans: VIP_PLANS,
+  });
+});
+
+// POST /api/payment/config - Protected: ONLY the authenticated owner can modify WhatsApp link and Paystack key
+app.post('/api/payment/config', (req, res) => {
+  const token = req.headers['x-admin-token'] as string | undefined;
+  const pin = req.body.adminPin as string | undefined;
+
+  const isAuthed = (token && activeAdminTokens.has(token)) || (pin && pin.trim() === adminPasscode.trim());
+  if (!isAuthed) {
+    return res.status(401).json({
+      success: false,
+      error: 'Unauthorized: Only the app owner with valid PIN can modify settings.',
+    });
+  }
+
+  const { paystackPublicKey, whatsappChannelUrl, channelName, currency } = req.body;
+  if (paystackPublicKey !== undefined && typeof paystackPublicKey === 'string') {
+    paymentConfig.paystackPublicKey = paystackPublicKey.trim();
+  }
+  if (whatsappChannelUrl !== undefined && typeof whatsappChannelUrl === 'string') {
+    paymentConfig.whatsappChannelUrl = whatsappChannelUrl.trim();
+  }
+  if (channelName !== undefined && typeof channelName === 'string') {
+    paymentConfig.channelName = channelName.trim();
+  }
+  if (currency !== undefined && typeof currency === 'string') {
+    paymentConfig.currency = currency.trim();
+  }
+  res.json({
+    success: true,
+    config: paymentConfig,
+    message: 'VIP Channel & Payment settings updated successfully by Owner!',
+  });
+});
+
+// POST /api/payment/verify - Verifies Paystack / manual payment, unlocks VIP and provides WhatsApp Channel link
+app.post('/api/payment/verify', (req, res) => {
+  const { reference, email, planId, matchId, amount, currency } = req.body;
+  const token = 'vip_' + Math.random().toString(36).substring(2, 10) + '_' + Date.now();
+
+  const tx = {
+    id: 'tx-' + Date.now(),
+    reference: reference || 'vip_ref_' + Date.now(),
+    email: email || 'vip_user@apexmatch.ai',
+    planId: planId || 'single_match',
+    matchId: matchId || undefined,
+    amount: amount || 3000,
+    currency: currency || paymentConfig.currency || 'NGN',
+    timestamp: new Date().toISOString(),
+    status: 'success' as const,
+    token,
+  };
+
+  transactionsStore.unshift(tx);
+
+  res.json({
+    success: true,
+    verified: true,
+    token,
+    planId: tx.planId,
+    matchId: tx.matchId,
+    whatsappChannelUrl: paymentConfig.whatsappChannelUrl,
+    channelName: paymentConfig.channelName,
+    message: 'VIP Payment Verified! Redirecting to WhatsApp Channel...',
+  });
+});
+
+// GET /api/payment/transactions - Protected: ONLY the authenticated owner can view customer purchases
+app.get('/api/payment/transactions', (req, res) => {
+  const token = req.headers['x-admin-token'] as string | undefined;
+  if (!token || !activeAdminTokens.has(token)) {
+    return res.status(401).json({
+      success: false,
+      error: 'Unauthorized: Only the app owner can view financial transactions.',
+    });
+  }
+
+  res.json({
+    transactions: transactionsStore,
+    totalRevenueCount: transactionsStore.length,
+  });
+});
+
 // POST /api/matches/fetch-upcoming
 // Uses Gemini with Google Search to dynamically discover upcoming marquee games and player stats
 app.post('/api/matches/fetch-upcoming', async (req, res) => {

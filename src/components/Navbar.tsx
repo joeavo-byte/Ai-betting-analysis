@@ -7,7 +7,12 @@ import {
   Activity,
   Layers,
   CheckCircle2,
-  CalendarDays
+  CalendarDays,
+  MessageCircle,
+  Settings,
+  Lock,
+  Unlock,
+  ExternalLink
 } from 'lucide-react';
 import { SportCategory } from '../types.ts';
 
@@ -17,6 +22,11 @@ interface NavbarProps {
   onOpenFetchModal: () => void;
   onOpenTrackRecord: () => void;
   onOpenPlayerLab: () => void;
+  onOpenPaywall: () => void;
+  onOpenAdminConfig: () => void;
+  isVIP: boolean;
+  isAdminAuthed: boolean;
+  whatsappChannelUrl: string;
   totalMatchesCount: number;
   accuracyPct: number;
 }
@@ -27,6 +37,11 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenFetchModal,
   onOpenTrackRecord,
   onOpenPlayerLab,
+  onOpenPaywall,
+  onOpenAdminConfig,
+  isVIP,
+  isAdminAuthed,
+  whatsappChannelUrl,
   totalMatchesCount,
   accuracyPct,
 }) => {
@@ -98,31 +113,75 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-2 sm:gap-2.5">
+          {/* VIP WhatsApp Channel Button */}
+          {isVIP ? (
+            <a
+              href={whatsappChannelUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 transition-all cursor-pointer shadow-sm"
+              title="Open official VIP WhatsApp Channel"
+            >
+              <MessageCircle className="w-4 h-4 text-emerald-400" />
+              <span className="hidden sm:inline">VIP WhatsApp</span>
+              <ExternalLink className="w-3 h-3 text-emerald-400/80" />
+            </a>
+          ) : (
+            <button
+              onClick={onOpenPaywall}
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20 transition-all cursor-pointer shadow-sm"
+              title="Pay via Paystack to unlock VIP Intel & WhatsApp Channel"
+            >
+              <MessageCircle className="w-4 h-4 text-emerald-400" />
+              <span>VIP WhatsApp</span>
+            </button>
+          )}
+
           <button
             onClick={onOpenPlayerLab}
-            className="flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg border border-slate-700 bg-slate-900/80 text-slate-200 hover:bg-slate-800 hover:border-slate-600 transition-all cursor-pointer shadow-sm"
+            className="hidden md:flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg border border-slate-700 bg-slate-900/80 text-slate-200 hover:bg-slate-800 hover:border-slate-600 transition-all cursor-pointer shadow-sm"
             title="Compare star players head-to-head"
           >
             <BarChart3 className="w-4 h-4 text-indigo-400" />
-            <span className="hidden md:inline">Player H2H Lab</span>
+            <span>Player H2H Lab</span>
           </button>
 
           <button
             onClick={onOpenTrackRecord}
-            className="flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg border border-slate-700 bg-slate-900/80 text-slate-200 hover:bg-slate-800 hover:border-slate-600 transition-all cursor-pointer shadow-sm"
+            className="hidden lg:flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg border border-slate-700 bg-slate-900/80 text-slate-200 hover:bg-slate-800 hover:border-slate-600 transition-all cursor-pointer shadow-sm"
           >
             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-            <span className="hidden md:inline">Track Record</span>
+            <span>Track Record</span>
           </button>
 
           <button
             onClick={onOpenFetchModal}
-            className="flex items-center gap-2 px-3.5 py-2 text-xs font-bold rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-md shadow-emerald-500/25 transition-all cursor-pointer active:scale-95"
+            className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-md shadow-emerald-500/25 transition-all cursor-pointer active:scale-95"
           >
             <Sparkles className="w-4 h-4" />
-            <span>Fetch Big Matches</span>
+            <span className="hidden sm:inline">Fetch Matches</span>
           </button>
+
+          {/* Owner WhatsApp & Paystack Settings (Protected by PIN) */}
+          {isAdminAuthed ? (
+            <button
+              onClick={onOpenAdminConfig}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-emerald-500/40 bg-emerald-950/40 text-emerald-300 text-xs font-mono font-bold hover:bg-emerald-900/50 transition-all cursor-pointer shadow-sm"
+              title="Owner Control Center (Authenticated)"
+            >
+              <Settings className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="hidden sm:inline">Owner Center</span>
+            </button>
+          ) : (
+            <button
+              onClick={onOpenAdminConfig}
+              className="p-2 text-slate-600 hover:text-slate-300 rounded-lg hover:bg-slate-900/60 transition-all cursor-pointer"
+              title="Owner Portal (PIN Required)"
+            >
+              <Lock className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </div>
 

@@ -19,15 +19,87 @@ import {
   Compass,
   ArrowRight,
   TrendingUp,
-  Brain
+  Brain,
+  Lock,
+  Unlock,
+  ShieldCheck,
+  MessageCircle,
+  ExternalLink,
+  Settings
 } from 'lucide-react';
-import { Match, SportCategory } from './types.ts';
+import { Match, SportCategory, VIPPaymentConfig, VIPPricingPlan, VIPAccessState } from './types.ts';
 import { Navbar } from './components/Navbar.tsx';
 import { MatchCard } from './components/MatchCard.tsx';
 import { MatchDetailModal } from './components/MatchDetailModal.tsx';
 import { FetchUpcomingModal } from './components/FetchUpcomingModal.tsx';
 import { PlayerDuelLab } from './components/PlayerDuelLab.tsx';
 import { TrackRecordModal } from './components/TrackRecordModal.tsx';
+import { VIPPaywallModal } from './components/VIPPaywallModal.tsx';
+import { AdminConfigModal } from './components/AdminConfigModal.tsx';
+
+const DEFAULT_VIP_CONFIG: VIPPaymentConfig = {
+  paystackPublicKey: 'pk_test_sample_apexmatch_paystack',
+  whatsappChannelUrl: 'https://whatsapp.com/channel/apexmatch-vip-intel',
+  currency: 'NGN',
+  channelName: 'ApexMatch VIP Match Intelligence Channel',
+};
+
+const DEFAULT_PLANS: VIPPricingPlan[] = [
+  {
+    id: 'single_match',
+    title: 'Single Match Deep Intel Pass',
+    badge: 'Standard Pick',
+    usd: 2.99,
+    ngn: 3000,
+    ghs: 35,
+    kes: 400,
+    zar: 55,
+    description: 'Instant full access to this match\'s deep AI tactical dossier, 1,000 Monte Carlo sims, and direct VIP WhatsApp channel entry.',
+    features: [
+      'Unlock Complete Tactical Rationale & Edge',
+      'All 3 Historical Proof Factors & Exploits',
+      '1,000 Monte Carlo Exact Score Distribution',
+      'Instant Redirect to VIP WhatsApp Channel for live alerts',
+      'Valid for this match indefinitely',
+    ],
+  },
+  {
+    id: 'weekend_vip',
+    title: 'Weekend VIP All-Match Pass',
+    badge: 'Most Popular',
+    usd: 6.99,
+    ngn: 7500,
+    ghs: 85,
+    kes: 950,
+    zar: 130,
+    description: 'Unlock EVERY upcoming marquee match this weekend across Football, Basketball & Tennis plus priority WhatsApp VIP insider notes.',
+    features: [
+      'Unlocks ALL upcoming matches in the app',
+      'Full Player Duel & Scouting Lab access',
+      'Interactive Lineup & What-If Simulator unlocked',
+      'VIP WhatsApp Channel Insider membership',
+      '30-minute pre-match lineup updates via WhatsApp',
+    ],
+  },
+  {
+    id: 'monthly_all_access',
+    title: 'Monthly Syndicate VIP Access',
+    badge: 'Ultimate Value',
+    usd: 19.99,
+    ngn: 20000,
+    ghs: 230,
+    kes: 2600,
+    zar: 370,
+    description: 'Full season pass: every blockbuster match, early algorithmic line alerts, direct analyst access in WhatsApp channel.',
+    features: [
+      'All-inclusive 30-day VIP app access',
+      'Direct WhatsApp Channel VIP role & daily early picks',
+      'Exclusive high-yield AI value picks and parlays',
+      'Priority requests for custom match modeling',
+      'Dedicated priority WhatsApp support',
+    ],
+  },
+];
 
 export default function App() {
   const [matches, setMatches] = useState<Match[]>([]);
@@ -40,6 +112,70 @@ export default function App() {
   const [isFetchModalOpen, setIsFetchModalOpen] = useState<boolean>(false);
   const [isTrackRecordOpen, setIsTrackRecordOpen] = useState<boolean>(false);
   const [isPlayerLabOpen, setIsPlayerLabOpen] = useState<boolean>(false);
+  const [isPaywallOpen, setIsPaywallOpen] = useState<boolean>(false);
+  const [selectedMatchForPaywall, setSelectedMatchForPaywall] = useState<Match | null>(null);
+  const [isAdminConfigOpen, setIsAdminConfigOpen] = useState<boolean>(false);
+
+  // VIP State and Payment Configuration
+  const [vipConfig, setVipConfig] = useState<VIPPaymentConfig>(DEFAULT_VIP_CONFIG);
+  const [vipPlans, setVipPlans] = useState<VIPPricingPlan[]>(DEFAULT_PLANS);
+  const [vipState, setVipState] = useState<VIPAccessState>(() => {
+    try {
+      const stored = localStorage.getItem('apexmatch_vip_state');
+      if (stored) return JSON.parse(stored);
+    } catch (e) {
+      console.warn('Failed to parse stored VIP state');
+    }
+    return {
+      isVIP: false,
+      unlockedMatches: [],
+      whatsappChannelUrl: DEFAULT_VIP_CONFIG.whatsappChannelUrl,
+    };
+  });
+
+  // Owner Authentication State (Secures Settings & Transactions from public users)
+  const [adminToken, setAdminToken] = useState<string | null>(() => {
+    try {
+      return sessionStorage.getItem('apexmatch_admin_token');
+    } catch (e) {
+      return null;
+    }
+  });
+  const isAdminAuthed = Boolean(adminToken);
+
+  const handleAdminAuthSuccess = (token: string) => {
+    setAdminToken(token);
+    try {
+      sessionStorage.setItem('apexmatch_admin_token', token);
+    } catch (e) {}
+    showToast('👑 Owner authenticated! All deep forecasts, player duels & 1,000 Monte Carlo sims unlocked.');
+  };
+
+  const handleAdminLogout = () => {
+    setAdminToken(null);
+    try {
+      sessionStorage.removeItem('apexmatch_admin_token');
+    } catch (e) {}
+    setIsAdminConfigOpen(false);
+    showToast('Owner mode locked.');
+  };
+
+  // Verify stored admin token on load
+  useEffect(() => {
+    if (adminToken) {
+      fetch('/api/admin/verify', {
+        headers: { 'x-admin-token': adminToken },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (!data.authenticated) {
+            setAdminToken(null);
+            sessionStorage.removeItem('apexmatch_admin_token');
+          }
+        })
+        .catch(() => {});
+    }
+  }, [adminToken]);
 
   // Loading states
   const [loadingMatches, setLoadingMatches] = useState<boolean>(true);
@@ -51,7 +187,14 @@ export default function App() {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // Fetch initial matches from server
+  // Check if a match is unlocked for the user (Owner has full automatic access across all matches!)
+  const isMatchVIP = (matchId: string) => {
+    if (isAdminAuthed) return true;
+    if (!vipState.isVIP) return false;
+    return vipState.unlockedMatches.includes('all') || vipState.unlockedMatches.includes(matchId);
+  };
+
+  // Fetch initial matches and payment config from server
   const loadMatches = async () => {
     try {
       setLoadingMatches(true);
@@ -67,9 +210,70 @@ export default function App() {
     }
   };
 
+  const loadPaymentConfig = async () => {
+    try {
+      const res = await fetch('/api/payment/config');
+      const data = await res.json();
+      if (data.config) {
+        setVipConfig(data.config);
+      }
+      if (data.plans) {
+        setVipPlans(data.plans);
+      }
+    } catch (err) {
+      console.error('Failed to load payment config:', err);
+    }
+  };
+
   useEffect(() => {
     loadMatches();
+    loadPaymentConfig();
   }, []);
+
+  // Update VIP Config from Admin Modal (Requires secret owner token)
+  const handleUpdatePaymentConfig = async (newConfig: Partial<VIPPaymentConfig>, token: string) => {
+    try {
+      const res = await fetch('/api/payment/config', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-token': token,
+        },
+        body: JSON.stringify(newConfig),
+      });
+      const data = await res.json();
+      if (data.config) {
+        setVipConfig(data.config);
+        showToast('VIP Channel & Payment settings updated!');
+      } else if (data.error) {
+        showToast(data.error);
+      }
+    } catch (err) {
+      showToast('Failed to update settings.');
+    }
+  };
+
+  // Handle successful VIP pass unlock
+  const handleVIPUnlocked = (newState: VIPAccessState) => {
+    const mergedState: VIPAccessState = {
+      isVIP: true,
+      unlockedMatches: Array.from(
+        new Set([...vipState.unlockedMatches, ...newState.unlockedMatches])
+      ),
+      token: newState.token,
+      userEmail: newState.userEmail,
+      planId: newState.planId,
+      whatsappChannelUrl: newState.whatsappChannelUrl || vipConfig.whatsappChannelUrl,
+      purchaseDate: newState.purchaseDate,
+    };
+    setVipState(mergedState);
+    try {
+      localStorage.setItem('apexmatch_vip_state', JSON.stringify(mergedState));
+    } catch (e) {
+      console.warn('Failed to save VIP state in localStorage');
+    }
+    showToast('VIP Pass Verified! Deep Match Intel & WhatsApp Channel Unlocked.');
+  };
 
   // Run AI Prediction on a match
   const handleRunPrediction = async (matchId: string, customModifiers?: any) => {
@@ -167,6 +371,14 @@ export default function App() {
         onOpenFetchModal={() => setIsFetchModalOpen(true)}
         onOpenTrackRecord={() => setIsTrackRecordOpen(true)}
         onOpenPlayerLab={() => setIsPlayerLabOpen(true)}
+        onOpenPaywall={() => {
+          setSelectedMatchForPaywall(null);
+          setIsPaywallOpen(true);
+        }}
+        onOpenAdminConfig={() => setIsAdminConfigOpen(true)}
+        isVIP={isAdminAuthed || vipState.isVIP}
+        isAdminAuthed={isAdminAuthed}
+        whatsappChannelUrl={vipConfig.whatsappChannelUrl}
         totalMatchesCount={matches.length}
         accuracyPct={76.5}
       />
@@ -190,6 +402,17 @@ export default function App() {
                   <span className="text-slate-400">{featuredMatch.tournament}</span>
                   <span className="text-slate-600">•</span>
                   <span className="text-slate-400">{featuredMatch.roundOrStage}</span>
+                  {isMatchVIP(featuredMatch.id) ? (
+                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold flex items-center gap-1">
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      VIP Unlocked
+                    </span>
+                  ) : (
+                    <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold flex items-center gap-1">
+                      <Lock className="w-3.5 h-3.5" />
+                      VIP Intel Gated
+                    </span>
+                  )}
                 </div>
 
                 <h2 className="text-2xl sm:text-4xl font-extrabold text-white mt-3 tracking-tight">
@@ -241,7 +464,7 @@ export default function App() {
                       <div className="mt-3">
                         <div className="flex justify-between text-[10px] font-mono text-slate-400 mb-1">
                           <span>{featuredMatch.homeTeam.shortName} {featuredMatch.prediction.probabilities.home}%</span>
-                          {featuredMatch.prediction.probabilities.draw && (
+                          {featuredMatch.prediction.probabilities.draw !== undefined && featuredMatch.prediction.probabilities.draw > 0 && (
                             <span>Draw {featuredMatch.prediction.probabilities.draw}%</span>
                           )}
                           <span>{featuredMatch.awayTeam.shortName} {featuredMatch.prediction.probabilities.away}%</span>
@@ -251,7 +474,7 @@ export default function App() {
                             className="bg-emerald-500 h-full"
                             style={{ width: `${featuredMatch.prediction.probabilities.home}%` }}
                           />
-                          {featuredMatch.prediction.probabilities.draw && (
+                          {featuredMatch.prediction.probabilities.draw !== undefined && featuredMatch.prediction.probabilities.draw > 0 && (
                             <div
                               className="bg-amber-500 h-full"
                               style={{ width: `${featuredMatch.prediction.probabilities.draw}%` }}
@@ -271,13 +494,27 @@ export default function App() {
                   )}
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center gap-2">
+                <div className="mt-4 pt-3 border-t border-slate-800/80 flex flex-col gap-2">
                   <button
                     onClick={() => setActiveMatchForModal(featuredMatch)}
-                    className="flex-1 py-2 px-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition-all cursor-pointer shadow-md text-center"
+                    className="w-full py-2.5 px-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition-all cursor-pointer shadow-md text-center flex items-center justify-center gap-1.5"
                   >
-                    Deep Breakdown & Stats
+                    <span>View Match Breakdown</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
                   </button>
+
+                  {!isMatchVIP(featuredMatch.id) && (
+                    <button
+                      onClick={() => {
+                        setSelectedMatchForPaywall(featuredMatch);
+                        setIsPaywallOpen(true);
+                      }}
+                      className="w-full py-2 px-3 rounded-lg bg-gradient-to-r from-emerald-500/20 to-teal-500/20 hover:from-emerald-500/30 hover:to-teal-500/30 text-emerald-300 border border-emerald-500/30 font-bold text-[11px] transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                    >
+                      <Lock className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Unlock VIP Intel & WhatsApp</span>
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -362,6 +599,11 @@ export default function App() {
                   onOpenDetails={setActiveMatchForModal}
                   onRunPrediction={handleRunPrediction}
                   isPredicting={predictingMatchId === match.id}
+                  isVIP={isMatchVIP(match.id)}
+                  onOpenPaywall={(m) => {
+                    setSelectedMatchForPaywall(m);
+                    setIsPaywallOpen(true);
+                  }}
                 />
               ))}
             </div>
@@ -428,8 +670,17 @@ export default function App() {
           <div>
             <span className="text-slate-300 font-bold">ApexMatch AI</span> • Big Match Predictor & Historical Player Performance Engine
           </div>
-          <div>
-            Powered by Gemini 3.8 Flash • Real-Time Sports Intelligence & Quantitative Analytics
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 justify-center sm:justify-end">
+            <span>Powered by Gemini 3.8 Flash • Real-Time Sports Intelligence & Quantitative Analytics</span>
+            <span className="text-slate-700 hidden sm:inline">•</span>
+            <button
+              onClick={() => setIsAdminConfigOpen(true)}
+              className="text-slate-500 hover:text-emerald-400 text-[11px] font-mono flex items-center gap-1 cursor-pointer transition-colors"
+              title="App Owner Access (Passcode Protected)"
+            >
+              <Lock className="w-3 h-3 text-slate-500" />
+              <span>{isAdminAuthed ? '👑 Owner Center Active' : 'Owner Portal'}</span>
+            </button>
           </div>
         </div>
       </footer>
@@ -441,8 +692,39 @@ export default function App() {
           onClose={() => setActiveMatchForModal(null)}
           onRunPrediction={handleRunPrediction}
           isPredicting={predictingMatchId === activeMatchForModal.id}
+          isVIP={isMatchVIP(activeMatchForModal.id)}
+          isOwner={isAdminAuthed}
+          whatsappChannelUrl={vipConfig.whatsappChannelUrl}
+          onOpenPaywall={() => {
+            setSelectedMatchForPaywall(activeMatchForModal);
+            setIsPaywallOpen(true);
+          }}
         />
       )}
+
+      <VIPPaywallModal
+        isOpen={isPaywallOpen}
+        onClose={() => {
+          setIsPaywallOpen(false);
+          setSelectedMatchForPaywall(null);
+        }}
+        match={selectedMatchForPaywall}
+        vipConfig={vipConfig}
+        plans={vipPlans}
+        onVIPUnlocked={handleVIPUnlocked}
+        onOpenAdminConfig={() => setIsAdminConfigOpen(true)}
+      />
+
+      <AdminConfigModal
+        isOpen={isAdminConfigOpen}
+        onClose={() => setIsAdminConfigOpen(false)}
+        config={vipConfig}
+        onUpdateConfig={handleUpdatePaymentConfig}
+        isAdminAuthed={isAdminAuthed}
+        onAdminAuthSuccess={handleAdminAuthSuccess}
+        onAdminLogout={handleAdminLogout}
+        adminToken={adminToken}
+      />
 
       <FetchUpcomingModal
         isOpen={isFetchModalOpen}

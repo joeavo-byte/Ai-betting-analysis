@@ -18,7 +18,12 @@ import {
   Compass,
   ArrowRight,
   Share2,
-  RefreshCw
+  RefreshCw,
+  Lock,
+  Unlock,
+  MessageCircle,
+  ExternalLink,
+  ShieldCheck
 } from 'lucide-react';
 import { Match, PlayerStat, AIPrediction } from '../types.ts';
 import { PlayerRadarChart } from './PlayerRadarChart.tsx';
@@ -28,6 +33,10 @@ interface MatchDetailModalProps {
   onClose: () => void;
   onRunPrediction: (matchId: string, customModifiers?: any) => Promise<void>;
   isPredicting: boolean;
+  isVIP?: boolean;
+  isOwner?: boolean;
+  whatsappChannelUrl?: string;
+  onOpenPaywall?: () => void;
 }
 
 export const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
@@ -35,6 +44,10 @@ export const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
   onClose,
   onRunPrediction,
   isPredicting,
+  isVIP = false,
+  isOwner = false,
+  whatsappChannelUrl = 'https://whatsapp.com/channel/apexmatch-vip-intel',
+  onOpenPaywall,
 }) => {
   const [activeTab, setActiveTab] = useState<'prediction' | 'players' | 'simulation' | 'whatif'>('prediction');
   const [selectedTeamTab, setSelectedTeamTab] = useState<'home' | 'away'>('home');
@@ -154,6 +167,55 @@ export const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
             <div className="space-y-6">
               {prediction ? (
                 <>
+                  {/* VIP Access Status Bar / WhatsApp Redirect */}
+                  {isVIP ? (
+                    <div className={`rounded-2xl border p-4 flex flex-wrap items-center justify-between gap-3 shadow-lg ${
+                      isOwner
+                        ? 'border-emerald-400/50 bg-gradient-to-r from-emerald-950/80 via-slate-900 to-indigo-950/60'
+                        : 'border-emerald-500/40 bg-gradient-to-r from-emerald-950/60 via-slate-900 to-emerald-950/40'
+                    }`}>
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+                          <ShieldCheck className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <span className="font-bold text-white text-xs flex items-center gap-1.5">
+                            {isOwner ? '👑 Owner Access Active • Full Match Intelligence Unlocked' : 'VIP Detailed Dossier Active'}
+                          </span>
+                          <span className="text-[11px] text-slate-400">
+                            {isOwner
+                              ? 'Logged in with owner PIN: all deep tactical stats, player duel edges, and 1,000 Monte Carlo runs unblurred'
+                              : 'Full quantitative proofs & 1,000 Monte Carlo sims unlocked'}
+                          </span>
+                        </div>
+                      </div>
+                      <a
+                        href={whatsappChannelUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="py-2 px-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition-all flex items-center gap-2 cursor-pointer shadow-md shadow-emerald-500/20 active:scale-95"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        <span>{isOwner ? 'Your VIP WhatsApp Channel' : 'Open VIP WhatsApp Channel'}</span>
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    </div>
+                  ) : (
+                    <div className="rounded-2xl border border-amber-500/30 bg-amber-950/20 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs">
+                      <div className="flex items-center gap-2 text-amber-300 font-medium">
+                        <Lock className="w-4 h-4 text-amber-400 shrink-0" />
+                        <span>Free Match Preview Active • Deep player duel exploits & WhatsApp channel access require VIP pass</span>
+                      </div>
+                      <button
+                        onClick={onOpenPaywall}
+                        className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-bold text-xs transition-all cursor-pointer flex items-center gap-1.5 shadow-sm"
+                      >
+                        <Unlock className="w-3.5 h-3.5" />
+                        <span>Unlock Full Dossier & WhatsApp</span>
+                      </button>
+                    </div>
+                  )}
+
                   {/* Hero Prediction Banner */}
                   <div className="rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-950/40 via-slate-900 to-indigo-950/30 p-6 shadow-xl relative overflow-hidden">
                     <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
@@ -226,16 +288,52 @@ export const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
                     </div>
                   </div>
 
-                  {/* Deep Tactical & Historical Rationale */}
-                  <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5 space-y-3">
-                    <div className="flex items-center gap-2 text-sm font-bold text-white">
-                      <Brain className="w-4 h-4 text-emerald-400" />
-                      <span>Quantitative Match Performance Analysis</span>
+                  {/* VIP PAYWALL GATE (Shown if user has not unlocked this match) */}
+                  {!isVIP && (
+                    <div className="relative rounded-2xl border-2 border-emerald-500/50 bg-gradient-to-br from-emerald-950/80 via-slate-900 to-indigo-950/70 p-6 sm:p-8 text-center shadow-2xl overflow-hidden my-4">
+                      <div className="w-14 h-14 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 mx-auto flex items-center justify-center mb-3 shadow-lg shadow-emerald-500/20">
+                        <Lock className="w-7 h-7" />
+                      </div>
+                      <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[10px] font-mono font-bold uppercase tracking-wider">
+                        VIP Detailed Dossier Gated
+                      </span>
+                      <h3 className="text-xl sm:text-2xl font-black text-white mt-2">
+                        Unlock Deep Player Duel Exploits & WhatsApp Channel
+                      </h3>
+                      <p className="text-xs sm:text-sm text-slate-300 max-w-lg mx-auto mt-2 leading-relaxed">
+                        Pay securely via Paystack to unlock the full quantitative tactical rationale, player duel matchup edges, and 1,000 Monte Carlo stochastic runs—plus get <strong>instant auto-redirect to our VIP WhatsApp Channel</strong> where late-breaking team lineup news and daily picks are published!
+                      </p>
+                      <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+                        <button
+                          onClick={onOpenPaywall}
+                          className="py-3 px-6 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-xs sm:text-sm shadow-xl shadow-emerald-500/25 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+                        >
+                          <Unlock className="w-4 h-4" />
+                          <span>Pay via Paystack & Join WhatsApp Channel</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      {/* Blurred Teaser preview behind */}
+                      <div className="mt-6 pt-5 border-t border-slate-800/80 filter blur-[3px] select-none pointer-events-none opacity-30 text-left space-y-2">
+                        <div className="font-bold text-white text-xs">Preview: In-depth Positional Duel Vulnerabilities</div>
+                        <p className="text-[11px] text-slate-400 line-clamp-2">{prediction.rationale}</p>
+                      </div>
                     </div>
-                    <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                      {prediction.rationale}
-                    </p>
-                  </div>
+                  )}
+
+                  {/* Deep Sections Container: Rendered if VIP, or blurred if not VIP */}
+                  <div className={!isVIP ? 'filter blur-[3px] opacity-30 pointer-events-none select-none space-y-6' : 'space-y-6'}>
+                    {/* Deep Tactical & Historical Rationale */}
+                    <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5 space-y-3">
+                      <div className="flex items-center gap-2 text-sm font-bold text-white">
+                        <Brain className="w-4 h-4 text-emerald-400" />
+                        <span>Quantitative Match Performance Analysis</span>
+                      </div>
+                      <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                        {prediction.rationale}
+                      </p>
+                    </div>
 
                   {/* Key Player Duel Card */}
                   {prediction.keyPlayerDuel && (
@@ -352,6 +450,7 @@ export const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
                         </div>
                       </div>
                     )}
+                  </div>
                   </div>
                 </>
               ) : (
@@ -590,7 +689,26 @@ export const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
           {/* TAB 3: 1,000 MONTE CARLO SIMULATION */}
           {activeTab === 'simulation' && (
             <div className="space-y-6">
-              {prediction?.monteCarloSim ? (
+              {!isVIP ? (
+                <div className="rounded-2xl border-2 border-emerald-500/40 bg-gradient-to-br from-emerald-950/60 via-slate-900 to-indigo-950/50 p-8 text-center space-y-4 shadow-xl">
+                  <div className="w-14 h-14 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 mx-auto flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                    <Lock className="w-7 h-7" />
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-black text-white">
+                    1,000 Monte Carlo Simulation Engine (VIP Exclusive)
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-300 max-w-md mx-auto leading-relaxed">
+                    Stochastic simulation generating 1,000 randomized match runs, calculating exact score frequencies, and calibrating the statistical Over/Under lines.
+                  </p>
+                  <button
+                    onClick={onOpenPaywall}
+                    className="py-3 px-6 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-xs sm:text-sm shadow-xl shadow-emerald-500/20 transition-all flex items-center gap-2 mx-auto cursor-pointer"
+                  >
+                    <Unlock className="w-4 h-4" />
+                    <span>Unlock 1,000 Sim & Join WhatsApp VIP</span>
+                  </button>
+                </div>
+              ) : prediction?.monteCarloSim ? (
                 <>
                   <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
                     <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
@@ -706,15 +824,36 @@ export const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
           {/* TAB 4: WHAT-IF SCENARIO SIMULATOR */}
           {activeTab === 'whatif' && (
             <div className="space-y-6">
-              <div className="rounded-xl border border-indigo-500/30 bg-indigo-950/20 p-5">
-                <div className="flex items-center gap-2">
-                  <SlidersHorizontal className="w-5 h-5 text-indigo-400" />
-                  <h3 className="text-base font-bold text-white">Interactive Scenario & Lineup Simulator</h3>
+              {!isVIP ? (
+                <div className="rounded-2xl border-2 border-indigo-500/40 bg-gradient-to-br from-indigo-950/60 via-slate-900 to-slate-950 p-8 text-center space-y-4 shadow-xl">
+                  <div className="w-14 h-14 rounded-2xl bg-indigo-500/20 border border-indigo-500/40 text-indigo-400 mx-auto flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                    <SlidersHorizontal className="w-7 h-7" />
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-black text-white">
+                    Interactive Lineup & What-If Simulator (VIP Exclusive)
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-300 max-w-md mx-auto leading-relaxed">
+                    Bench key star athletes, introduce adverse rain or high-altitude weather, adjust crowd cauldron intensity, and re-compute AI odds on the fly.
+                  </p>
+                  <button
+                    onClick={onOpenPaywall}
+                    className="py-3 px-6 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-xs sm:text-sm shadow-xl shadow-emerald-500/20 transition-all flex items-center gap-2 mx-auto cursor-pointer"
+                  >
+                    <Unlock className="w-4 h-4" />
+                    <span>Unlock Simulator & Join WhatsApp VIP</span>
+                  </button>
                 </div>
-                <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
-                  Modify match circumstances—bench a star player, introduce adverse weather, or neutralize home advantage—and re-run the AI prediction engine to see the impact on win probabilities and tactical outcomes.
-                </p>
-              </div>
+              ) : (
+                <>
+                  <div className="rounded-xl border border-indigo-500/30 bg-indigo-950/20 p-5">
+                    <div className="flex items-center gap-2">
+                      <SlidersHorizontal className="w-5 h-5 text-indigo-400" />
+                      <h3 className="text-base font-bold text-white">Interactive Scenario & Lineup Simulator</h3>
+                    </div>
+                    <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
+                      Modify match circumstances—bench a star player, introduce adverse weather, or neutralize home advantage—and re-run the AI prediction engine to see the impact on win probabilities and tactical outcomes.
+                    </p>
+                  </div>
 
               {/* Roster Absences / Benching Selector */}
               <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
@@ -836,9 +975,11 @@ export const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
                   <span>Re-Compute Forecast with Custom Modifiers</span>
                 </button>
               </div>
-            </div>
+            </>
           )}
         </div>
+      )}
+    </div>
 
         {/* Modal Bottom Bar */}
         <div className="border-t border-slate-800 px-6 py-3.5 bg-slate-900/80 flex flex-wrap items-center justify-between gap-3 text-xs">
