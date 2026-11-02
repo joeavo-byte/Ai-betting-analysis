@@ -1,4 +1,4 @@
-import { Match, AIPrediction } from '../types.ts';
+import type { Match, AIPrediction } from '../types.ts';
 
 // Deterministic yet realistic statistical simulation engine
 export function computeStatisticalPrediction(match: Match, customModifiers?: any): AIPrediction {

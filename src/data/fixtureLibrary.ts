@@ -1,4 +1,4 @@
-import { Match } from '../types.ts';
+import type { Match } from '../types.ts';
 
 export const EXPANDED_FIXTURE_LIBRARY: Match[] = [
   // 1. Arsenal vs Chelsea

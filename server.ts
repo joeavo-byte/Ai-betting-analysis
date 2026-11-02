@@ -7,7 +7,7 @@ import { createServer as createViteServer } from 'vite';
 import { INITIAL_MATCHES, INITIAL_TRACK_RECORD } from './src/data/initialMatches.ts';
 import { EXPANDED_FIXTURE_LIBRARY } from './src/data/fixtureLibrary.ts';
 import { computeStatisticalPrediction } from './src/services/statisticalPredictor.ts';
-import { Match, AIPrediction, PredictionTrackRecord } from './src/types.ts';
+import type { Match, AIPrediction, PredictionTrackRecord } from './src/types.ts';
 
 dotenv.config();
 
@@ -15,7 +15,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
 app.use(express.json());
 

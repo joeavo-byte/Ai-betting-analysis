@@ -1,4 +1,4 @@
-import { Match, PredictionTrackRecord } from '../types.ts';
+import type { Match, PredictionTrackRecord } from '../types.ts';
 
 export const INITIAL_MATCHES: Match[] = [
   {
