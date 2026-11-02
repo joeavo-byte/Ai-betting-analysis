@@ -45,7 +45,9 @@ export const VIPPaywallModal: React.FC<VIPPaywallModalProps> = ({
   onOpenAdminConfig,
 }) => {
   const [selectedPlanId, setSelectedPlanId] = useState<string>('single_match');
-  const [selectedCurrency, setSelectedCurrency] = useState<'NGN' | 'USD' | 'GHS' | 'KES' | 'ZAR'>('NGN');
+  const [selectedCurrency, setSelectedCurrency] = useState<'NGN' | 'USD' | 'GHS' | 'KES' | 'ZAR'>(
+    vipConfig.currency || 'GHS'
+  );
   const [userEmail, setUserEmail] = useState<string>('');
   const [userName, setUserName] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
@@ -55,6 +57,13 @@ export const VIPPaywallModal: React.FC<VIPPaywallModalProps> = ({
     planTitle: string;
   } | null>(null);
   const [redirectCountdown, setRedirectCountdown] = useState<number>(4);
+
+  // Sync default currency from config
+  useEffect(() => {
+    if (vipConfig?.currency) {
+      setSelectedCurrency(vipConfig.currency);
+    }
+  }, [vipConfig?.currency]);
 
   // Auto redirect countdown when payment succeeded
   useEffect(() => {
@@ -293,7 +302,7 @@ export const VIPPaywallModal: React.FC<VIPPaywallModalProps> = ({
             {/* Currency Selector */}
             <div className="flex items-center justify-center gap-1.5 overflow-x-auto pb-1">
               <span className="text-[11px] font-mono text-slate-400 mr-1">Currency:</span>
-              {(['NGN', 'USD', 'GHS', 'KES', 'ZAR'] as const).map((curr) => (
+              {(['GHS', 'NGN', 'USD', 'KES', 'ZAR'] as const).map((curr) => (
                 <button
                   key={curr}
                   onClick={() => setSelectedCurrency(curr)}

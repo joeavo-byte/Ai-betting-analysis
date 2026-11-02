@@ -37,11 +37,11 @@ export const FetchUpcomingModal: React.FC<FetchUpcomingModalProps> = ({
       if (res.success) {
         setResultMsg({
           type: 'success',
-          text: `Successfully synced ${res.count ?? 'new'} blockbuster fixtures and compiled historical player stats!`,
+          text: res.message || `Successfully synced ${res.count ?? 'new'} blockbuster fixtures and compiled historical player stats!`,
         });
         setTimeout(() => {
           onClose();
-        }, 1400);
+        }, 1600);
       } else {
         setResultMsg({
           type: 'error',
