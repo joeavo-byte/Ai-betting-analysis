@@ -25,7 +25,9 @@ import {
   ShieldCheck,
   MessageCircle,
   ExternalLink,
-  Settings
+  Settings,
+  X,
+  RefreshCw,
 } from 'lucide-react';
 import { Match, SportCategory, VIPPaymentConfig, VIPPricingPlan, VIPAccessState } from './types.ts';
 import { Navbar } from './components/Navbar.tsx';
@@ -104,6 +106,7 @@ const DEFAULT_PLANS: VIPPricingPlan[] = [
 export default function App() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [selectedSport, setSelectedSport] = useState<string>('all');
+  const [selectedLeague, setSelectedLeague] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortBy, setSortBy] = useState<'importance' | 'date'>('importance');
 
@@ -324,21 +327,113 @@ export default function App() {
     }
   };
 
-  // Filter & Sort matches
+  // Sync entire 20+ fixture slate across all leagues
+  const handleSyncAll = async () => {
+    try {
+      setLoadingMatches(true);
+      const res = await fetch('/api/matches/sync-all', { method: 'POST' });
+      const data = await res.json();
+      if (data.matches) {
+        setMatches(data.matches);
+        showToast(`⚡ ${data.message || `Full slate synced! ${data.matches.length} fixtures loaded across all leagues.`}`);
+      }
+    } catch (err) {
+      console.error('Error syncing all:', err);
+      showToast('Error syncing full slate.');
+    } finally {
+      setLoadingMatches(false);
+    }
+  };
+
+  // Live search or dynamically generate a custom match query
+  const handleLiveSearchOrGenerate = async (queryToSearch: string) => {
+    if (!queryToSearch.trim()) return;
+    showToast(`⚡ Searching sports intelligence & compiling match for "${queryToSearch}"...`);
+    const res = await handleFetchUpcoming('all', queryToSearch);
+    if (res.success) {
+      showToast(`Matches synced for "${queryToSearch}"!`);
+    } else {
+      showToast(res.message || 'Could not fetch match.');
+    }
+  };
+
+  // Filter & Sort matches across teams, leagues, players, coaches, tournaments & venues
   const filteredMatches = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
+
     return matches
       .filter((m) => {
-        if (selectedSport !== 'all' && m.sport !== selectedSport) return false;
-        if (!searchQuery.trim()) return true;
-        const q = searchQuery.toLowerCase();
-        const homeMatch = m.homeTeam.name.toLowerCase().includes(q);
-        const awayMatch = m.awayTeam.name.toLowerCase().includes(q);
-        const tournamentMatch = m.tournament.toLowerCase().includes(q);
+        // Specific League Filter
+        if (selectedLeague !== 'all') {
+          const homeLeague = (m.homeTeam.league || '').toLowerCase();
+          const awayLeague = (m.awayTeam.league || '').toLowerCase();
+          const tournament = m.tournament.toLowerCase();
+          const lq = selectedLeague.toLowerCase();
+
+          const matchesLeague =
+            homeLeague.includes(lq) ||
+            awayLeague.includes(lq) ||
+            tournament.includes(lq) ||
+            (lq === 'premier league' && (tournament.includes('premier') || homeLeague.includes('premier') || tournament.includes('epl'))) ||
+            (lq === 'champions league' && (tournament.includes('champions') || tournament.includes('ucl'))) ||
+            (lq === 'la liga' && (tournament.includes('la liga') || homeLeague.includes('la liga'))) ||
+            (lq === 'serie a' && (tournament.includes('serie a') || homeLeague.includes('serie a'))) ||
+            (lq === 'bundesliga' && (tournament.includes('bundesliga') || homeLeague.includes('bundesliga'))) ||
+            (lq === 'ligue 1' && (tournament.includes('ligue 1') || homeLeague.includes('ligue 1'))) ||
+            (lq === 'nba' && (m.sport === 'basketball' || tournament.includes('nba'))) ||
+            (lq === 'tennis' && (m.sport === 'tennis' || tournament.includes('wimbledon') || tournament.includes('garros') || tournament.includes('slam'))) ||
+            (lq === 'nfl' && (m.sport === 'american_football' || tournament.includes('nfl')));
+
+          if (!matchesLeague) return false;
+        }
+
+        // Sport Category Filter (If user is searching by text, don't rigidly hide matches from other sports if they match the query!)
+        if (selectedSport !== 'all' && !q) {
+          if (m.sport !== selectedSport) return false;
+        }
+
+        // Search Query Filter
+        if (!q) return true;
+
+        const homeName = m.homeTeam.name.toLowerCase();
+        const homeShort = (m.homeTeam.shortName || '').toLowerCase();
+        const homeLeague = (m.homeTeam.league || '').toLowerCase();
+        const homeCoach = (m.homeTeam.coach || '').toLowerCase();
+        const awayName = m.awayTeam.name.toLowerCase();
+        const awayShort = (m.awayTeam.shortName || '').toLowerCase();
+        const awayLeague = (m.awayTeam.league || '').toLowerCase();
+        const awayCoach = (m.awayTeam.coach || '').toLowerCase();
+        const tournament = m.tournament.toLowerCase();
+        const round = (m.roundOrStage || '').toLowerCase();
+        const sportName = m.sport.toLowerCase();
+        const headline = m.headline.toLowerCase();
+        const venue = (m.venue || '').toLowerCase();
+        const city = (m.city || '').toLowerCase();
+        const country = (m.country || '').toLowerCase();
+
         const playerMatch = [
           ...m.homeTeam.keyPlayers.map((p) => p.name.toLowerCase()),
           ...m.awayTeam.keyPlayers.map((p) => p.name.toLowerCase()),
         ].some((pName) => pName.includes(q));
-        return homeMatch || awayMatch || tournamentMatch || playerMatch;
+
+        return (
+          homeName.includes(q) ||
+          homeShort.includes(q) ||
+          homeLeague.includes(q) ||
+          homeCoach.includes(q) ||
+          awayName.includes(q) ||
+          awayShort.includes(q) ||
+          awayLeague.includes(q) ||
+          awayCoach.includes(q) ||
+          tournament.includes(q) ||
+          round.includes(q) ||
+          sportName.includes(q) ||
+          headline.includes(q) ||
+          venue.includes(q) ||
+          city.includes(q) ||
+          country.includes(q) ||
+          playerMatch
+        );
       })
       .sort((a, b) => {
         if (sortBy === 'importance') {
@@ -346,7 +441,7 @@ export default function App() {
         }
         return new Date(a.date).getTime() - new Date(b.date).getTime();
       });
-  }, [matches, selectedSport, searchQuery, sortBy]);
+  }, [matches, selectedSport, selectedLeague, searchQuery, sortBy]);
 
   // Featured Marquee Match (highest importance)
   const featuredMatch = useMemo(() => {
@@ -522,63 +617,127 @@ export default function App() {
         )}
 
         {/* Filter, Search & Controls Bar */}
-        <section className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-900/60 p-3.5 rounded-2xl border border-slate-800">
-          <div className="relative w-full sm:w-80">
-            <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search teams, tournaments, or star players..."
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
-            />
+        <section className="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 space-y-3">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="relative w-full sm:w-96">
+              <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleLiveSearchOrGenerate(searchQuery);
+                  }
+                }}
+                placeholder="Search any team (Arsenal, Inter...), league (Serie A...), or player (Haaland)..."
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-9 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 p-0.5 rounded cursor-pointer"
+                  title="Clear search"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-end text-xs font-mono">
+              <span className="text-slate-400 text-[11px] flex items-center gap-1 hidden sm:flex">
+                <Filter className="w-3.5 h-3.5 text-slate-500" />
+                Sort:
+              </span>
+              <button
+                onClick={() => setSortBy('importance')}
+                className={`px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${
+                  sortBy === 'importance'
+                    ? 'bg-slate-800 text-emerald-400 border-slate-700 font-bold'
+                    : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'
+                }`}
+              >
+                🔥 Importance Stakes
+              </button>
+              <button
+                onClick={() => setSortBy('date')}
+                className={`px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${
+                  sortBy === 'date'
+                    ? 'bg-slate-800 text-emerald-400 border-slate-700 font-bold'
+                    : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'
+                }`}
+              >
+                📅 Date
+              </button>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-end text-xs font-mono">
-            <span className="text-slate-400 text-[11px] flex items-center gap-1 hidden sm:flex">
-              <Filter className="w-3.5 h-3.5 text-slate-500" />
-              Sort By:
+          {/* Quick League Filter Chips */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none pt-1 border-t border-slate-800/60">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 shrink-0 mr-1">
+              Leagues:
             </span>
-            <button
-              onClick={() => setSortBy('importance')}
-              className={`px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${
-                sortBy === 'importance'
-                  ? 'bg-slate-800 text-emerald-400 border-slate-700 font-bold'
-                  : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'
-              }`}
-            >
-              🔥 Importance Stakes
-            </button>
-            <button
-              onClick={() => setSortBy('date')}
-              className={`px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${
-                sortBy === 'date'
-                  ? 'bg-slate-800 text-emerald-400 border-slate-700 font-bold'
-                  : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'
-              }`}
-            >
-              📅 Date
-            </button>
+            {[
+              { id: 'all', label: 'All Leagues' },
+              { id: 'premier league', label: '🇬🇧 Premier League' },
+              { id: 'champions league', label: '🏆 Champions League' },
+              { id: 'la liga', label: '🇪🇸 La Liga' },
+              { id: 'serie a', label: '🇮🇹 Serie A' },
+              { id: 'bundesliga', label: '🇩🇪 Bundesliga' },
+              { id: 'ligue 1', label: '🇫🇷 Ligue 1' },
+              { id: 'nba', label: '🏀 NBA' },
+              { id: 'tennis', label: '🎾 Grand Slams' },
+              { id: 'nfl', label: '🏈 NFL' },
+            ].map((league) => {
+              const isActive = selectedLeague === league.id;
+              return (
+                <button
+                  key={league.id}
+                  onClick={() => {
+                    setSelectedLeague(league.id);
+                  }}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-medium whitespace-nowrap transition-all cursor-pointer border ${
+                    isActive
+                      ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold shadow-sm'
+                      : 'bg-slate-950/80 text-slate-400 border-slate-800 hover:text-slate-200 hover:border-slate-700'
+                  }`}
+                >
+                  {league.label}
+                </button>
+              );
+            })}
           </div>
         </section>
 
         {/* Matches Grid */}
         <section className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
             <div className="flex items-center gap-2">
               <h3 className="text-base font-bold text-white">Upcoming Blockbuster Fixtures</h3>
               <span className="font-mono text-xs text-slate-400 bg-slate-900 px-2 py-0.5 rounded-full border border-slate-800">
-                {filteredMatches.length} Matches
+                {filteredMatches.length} of {matches.length} Loaded
               </span>
             </div>
 
-            <button
-              onClick={() => setIsFetchModalOpen(true)}
-              className="text-xs font-mono text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Fetch More Fixtures via AI</span>
-            </button>
+            <div className="flex items-center gap-2.5">
+              <button
+                onClick={handleSyncAll}
+                className="text-xs font-mono px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 flex items-center gap-1.5 cursor-pointer transition-all shadow-sm"
+                title="Sync and load full multi-league match slate"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Sync All Leagues</span>
+              </button>
+
+              <button
+                onClick={() => setIsFetchModalOpen(true)}
+                className="text-xs font-mono text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Fetch More Fixtures via AI</span>
+              </button>
+            </div>
           </div>
 
           {loadingMatches ? (
@@ -608,18 +767,49 @@ export default function App() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-16 bg-slate-900/30 rounded-2xl border border-slate-800">
-              <Compass className="w-10 h-10 text-slate-600 mx-auto mb-2" />
-              <h4 className="text-sm font-bold text-slate-200">No matches found</h4>
-              <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-                No fixtures matched your current query or sport filter. Fetch fresh upcoming matches using Gemini sports search.
-              </p>
-              <button
-                onClick={() => setIsFetchModalOpen(true)}
-                className="mt-4 px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-lg transition-all cursor-pointer"
-              >
-                Fetch Real Matches Now
-              </button>
+            <div className="text-center py-16 bg-slate-900/40 rounded-2xl border border-slate-800 p-6 space-y-4">
+              <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mx-auto text-emerald-400">
+                <Compass className="w-6 h-6" />
+              </div>
+              <div>
+                <h4 className="text-base font-bold text-slate-100">
+                  {searchQuery ? `No fixtures found matching "${searchQuery}"` : 'No fixtures match current filter'}
+                </h4>
+                <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
+                  {searchQuery
+                    ? `Click below to search live sports intelligence or synthesize realistic match telemetry for "${searchQuery}".`
+                    : 'Clear filters or load the complete multi-league fixture slate.'}
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-center gap-2.5 pt-2">
+                {searchQuery && (
+                  <button
+                    onClick={() => handleLiveSearchOrGenerate(searchQuery)}
+                    className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-xl shadow-lg shadow-emerald-500/20 transition-all cursor-pointer flex items-center gap-1.5"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Fetch & Generate "{searchQuery}" Live</span>
+                  </button>
+                )}
+                <button
+                  onClick={handleSyncAll}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl border border-slate-700 transition-all cursor-pointer flex items-center gap-1.5"
+                >
+                  <RefreshCw className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Load All 20+ League Matches</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setSearchQuery('');
+                    setSelectedLeague('all');
+                    setSelectedSport('all');
+                  }}
+                  className="px-3 py-2 text-xs font-mono text-slate-400 hover:text-white underline cursor-pointer"
+                >
+                  Reset All Filters
+                </button>
+              </div>
             </div>
           )}
         </section>
