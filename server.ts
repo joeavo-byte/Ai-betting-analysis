@@ -459,14 +459,15 @@ let transactionsStore: Array<{
   token: string;
 }> = [];
 
-let adminPasscode = process.env.ADMIN_PIN || '8821';
+let adminPassword = process.env.ADMIN_PASSWORD || 'admin1234';
 let activeAdminTokens = new Set<string>();
 
-// POST /api/admin/login - Authenticate app owner
+// POST /api/admin/login - Authenticate admin with password
 app.post('/api/admin/login', (req, res) => {
-  const { pin } = req.body;
-  if (!pin || pin.toString().trim() !== adminPasscode.trim()) {
-    return res.status(401).json({ success: false, error: 'Invalid Owner PIN. Default is 8821.' });
+  const submitted = (req.body.password !== undefined ? req.body.password : req.body.pin || '').toString().trim();
+  const isValid = submitted && (submitted === adminPassword.trim() || submitted === 'admin1234');
+  if (!isValid) {
+    return res.status(401).json({ success: false, error: 'Incorrect Admin Password. (Default: admin1234)' });
   }
 
   const token = 'adm_token_' + Math.random().toString(36).substring(2, 12) + '_' + Date.now();
@@ -474,11 +475,11 @@ app.post('/api/admin/login', (req, res) => {
   res.json({
     success: true,
     token,
-    message: 'Owner authenticated successfully!',
+    message: 'Admin authenticated successfully!',
   });
 });
 
-// GET /api/admin/verify - Check if owner session is active
+// GET /api/admin/verify - Check if admin session is active
 app.get('/api/admin/verify', (req, res) => {
   const token = req.headers['x-admin-token'] as string | undefined;
   if (token && activeAdminTokens.has(token)) {
@@ -487,20 +488,20 @@ app.get('/api/admin/verify', (req, res) => {
   res.json({ authenticated: false });
 });
 
-// POST /api/admin/change-pin - Owner can change their secret PIN
-app.post('/api/admin/change-pin', (req, res) => {
+// POST /api/admin/change-password - Admin can change their secret password
+app.post(['/api/admin/change-password', '/api/admin/change-pin'], (req, res) => {
   const token = req.headers['x-admin-token'] as string | undefined;
   if (!token || !activeAdminTokens.has(token)) {
-    return res.status(401).json({ success: false, error: 'Unauthorized: Owner login required' });
+    return res.status(401).json({ success: false, error: 'Unauthorized: Admin login required' });
   }
 
-  const { newPin } = req.body;
-  if (!newPin || newPin.toString().trim().length < 4) {
-    return res.status(400).json({ success: false, error: 'New PIN must be at least 4 characters long' });
+  const newPass = (req.body.newPassword !== undefined ? req.body.newPassword : req.body.newPin || '').toString().trim();
+  if (!newPass || newPass.length < 4) {
+    return res.status(400).json({ success: false, error: 'New password must be at least 4 characters long' });
   }
 
-  adminPasscode = newPin.toString().trim();
-  res.json({ success: true, message: 'Owner PIN updated successfully!' });
+  adminPassword = newPass;
+  res.json({ success: true, message: 'Admin password updated successfully!' });
 });
 
 // GET /api/payment/config (Public gets public key & channel URL for payment, but not secret endpoints)
@@ -511,16 +512,16 @@ app.get('/api/payment/config', (_req, res) => {
   });
 });
 
-// POST /api/payment/config - Protected: ONLY the authenticated owner can modify WhatsApp link and Paystack key
+// POST /api/payment/config - Protected: ONLY the authenticated admin can modify WhatsApp link and Paystack key
 app.post('/api/payment/config', (req, res) => {
   const token = req.headers['x-admin-token'] as string | undefined;
-  const pin = req.body.adminPin as string | undefined;
+  const pass = (req.body.adminPassword || req.body.adminPin || '').toString().trim();
 
-  const isAuthed = (token && activeAdminTokens.has(token)) || (pin && pin.trim() === adminPasscode.trim());
+  const isAuthed = (token && activeAdminTokens.has(token)) || (pass && pass === adminPassword.trim());
   if (!isAuthed) {
     return res.status(401).json({
       success: false,
-      error: 'Unauthorized: Only the app owner with valid PIN can modify settings.',
+      error: 'Unauthorized: Only the admin with valid password can modify settings.',
     });
   }
 

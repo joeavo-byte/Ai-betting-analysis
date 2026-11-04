@@ -445,20 +445,6 @@ export const VIPPaywallModal: React.FC<VIPPaywallModalProps> = ({
                   <span>Instant Test Unlock (Demo Mode)</span>
                 </button>
               </div>
-
-              {onOpenAdminConfig && (
-                <div className="pt-2 text-center">
-                  <button
-                    onClick={() => {
-                      onClose();
-                      onOpenAdminConfig();
-                    }}
-                    className="text-[11px] font-mono text-stone-500 dark:text-slate-500 hover:text-stone-700 dark:hover:text-slate-300 cursor-pointer"
-                  >
-                    Are you the app owner? <u>Configure your WhatsApp link and Paystack keys here</u>
-                  </button>
-                </div>
-              )}
             </div>
           </div>
         )}

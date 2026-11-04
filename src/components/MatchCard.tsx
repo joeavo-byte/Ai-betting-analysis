@@ -262,15 +262,23 @@ export const MatchCard: React.FC<MatchCardProps> = ({
       {/* Action Buttons */}
       <div className="mt-4 pt-3.5 border-t border-stone-300/80 dark:border-slate-800/80 flex items-center gap-2">
         <button
-          onClick={() => onOpenDetails(match)}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-stone-900 hover:bg-stone-800 text-stone-50 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-100 text-xs font-semibold transition-all cursor-pointer border border-stone-800 dark:border-slate-700 shadow-xs"
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onOpenDetails(match);
+          }}
+          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg bg-stone-900 hover:bg-stone-800 text-stone-50 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-100 text-xs font-bold transition-all cursor-pointer border border-stone-800 dark:border-slate-700 shadow-xs active:scale-[0.98]"
         >
           <span>Deep Forecast & Stats</span>
           <ChevronRight className="w-3.5 h-3.5 text-stone-400 dark:text-slate-400" />
         </button>
 
         <button
-          onClick={() => onRunPrediction(match.id)}
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onRunPrediction(match.id);
+          }}
           disabled={isPredicting}
           className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-emerald-600/15 hover:bg-emerald-600/25 border border-emerald-600/30 text-emerald-900 dark:text-emerald-400 text-xs font-semibold transition-all cursor-pointer disabled:opacity-50"
           title="Run fresh AI prediction on player metrics"

@@ -38,6 +38,7 @@ import { PlayerDuelLab } from './components/PlayerDuelLab.tsx';
 import { TrackRecordModal } from './components/TrackRecordModal.tsx';
 import { VIPPaywallModal } from './components/VIPPaywallModal.tsx';
 import { AdminConfigModal } from './components/AdminConfigModal.tsx';
+import { AdminDashboard } from './components/AdminDashboard.tsx';
 
 const DEFAULT_VIP_CONFIG: VIPPaymentConfig = {
   paystackPublicKey: 'pk_test_sample_apexmatch_paystack',
@@ -143,6 +144,51 @@ export default function App() {
   const [selectedMatchForPaywall, setSelectedMatchForPaywall] = useState<Match | null>(null);
   const [isAdminConfigOpen, setIsAdminConfigOpen] = useState<boolean>(false);
 
+  // App Routing: detects /admindashboard or direct typing in URL bar
+  const [currentRoute, setCurrentRoute] = useState<'home' | 'admin'>(() => {
+    if (typeof window !== 'undefined') {
+      const p = window.location.pathname.toLowerCase();
+      const h = window.location.hash.toLowerCase();
+      if (p.includes('admindashboard') || h.includes('admindashboard')) {
+        return 'admin';
+      }
+    }
+    return 'home';
+  });
+
+  useEffect(() => {
+    const handleRouteChange = () => {
+      const p = window.location.pathname.toLowerCase();
+      const h = window.location.hash.toLowerCase();
+      if (p.includes('admindashboard') || h.includes('admindashboard')) {
+        setCurrentRoute('admin');
+      } else {
+        setCurrentRoute('home');
+      }
+    };
+
+    window.addEventListener('popstate', handleRouteChange);
+    window.addEventListener('hashchange', handleRouteChange);
+    return () => {
+      window.removeEventListener('popstate', handleRouteChange);
+      window.removeEventListener('hashchange', handleRouteChange);
+    };
+  }, []);
+
+  const handleNavigateHome = () => {
+    setCurrentRoute('home');
+    try {
+      window.history.pushState({}, '', '/');
+    } catch (e) {}
+  };
+
+  const handleNavigateAdmin = () => {
+    setCurrentRoute('admin');
+    try {
+      window.history.pushState({}, '', '/admindashboard');
+    } catch (e) {}
+  };
+
   // VIP State and Payment Configuration
   const [vipConfig, setVipConfig] = useState<VIPPaymentConfig>(DEFAULT_VIP_CONFIG);
   const [vipPlans, setVipPlans] = useState<VIPPricingPlan[]>(DEFAULT_PLANS);
@@ -160,10 +206,36 @@ export default function App() {
     };
   });
 
-  // Owner Authentication State (Secures Settings & Transactions from public users)
+  // Matches marked by admin as VIP Gated (default key marquee games)
+  const [vipGatedMatchIds, setVipGatedMatchIds] = useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem('apex_vip_gated_matches');
+      if (stored) return JSON.parse(stored);
+    } catch (e) {}
+    return ['m-elclasico-2026', 'm-man-derby-2026', 'm-ucl-bay-rma-2026', 'm-nba-bos-lal-2026'];
+  });
+
+  const isMatchGatedVIP = (matchId: string) => {
+    return vipGatedMatchIds.includes(matchId);
+  };
+
+  const handleToggleMatchVIP = (matchId: string) => {
+    setVipGatedMatchIds((prev) => {
+      const updated = prev.includes(matchId)
+        ? prev.filter((id) => id !== matchId)
+        : [...prev, matchId];
+      try {
+        localStorage.setItem('apex_vip_gated_matches', JSON.stringify(updated));
+      } catch (e) {}
+      showToast(`Match VIP status updated in admin registry.`);
+      return updated;
+    });
+  };
+
+  // Admin Authentication State (Persists in localStorage so admin stays logged in across reloads)
   const [adminToken, setAdminToken] = useState<string | null>(() => {
     try {
-      return sessionStorage.getItem('apexmatch_admin_token');
+      return localStorage.getItem('apexmatch_admin_token') || sessionStorage.getItem('apexmatch_admin_token');
     } catch (e) {
       return null;
     }
@@ -173,18 +245,20 @@ export default function App() {
   const handleAdminAuthSuccess = (token: string) => {
     setAdminToken(token);
     try {
+      localStorage.setItem('apexmatch_admin_token', token);
       sessionStorage.setItem('apexmatch_admin_token', token);
     } catch (e) {}
-    showToast('👑 Owner authenticated! All deep forecasts, player duels & 1,000 Monte Carlo sims unlocked.');
+    showToast('👑 Admin authenticated! All deep forecasts, player duels & 1,000 Monte Carlo sims unlocked.');
   };
 
   const handleAdminLogout = () => {
     setAdminToken(null);
     try {
+      localStorage.removeItem('apexmatch_admin_token');
       sessionStorage.removeItem('apexmatch_admin_token');
     } catch (e) {}
     setIsAdminConfigOpen(false);
-    showToast('Owner mode locked.');
+    showToast('Admin logged out.');
   };
 
   // Verify stored admin token on load
@@ -197,6 +271,7 @@ export default function App() {
         .then((data) => {
           if (!data.authenticated) {
             setAdminToken(null);
+            localStorage.removeItem('apexmatch_admin_token');
             sessionStorage.removeItem('apexmatch_admin_token');
           }
         })
@@ -214,9 +289,13 @@ export default function App() {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // Check if a match is unlocked for the user (Owner has full automatic access across all matches!)
+  // Check if a match is unlocked for the user:
+  // 1. Admin always has full access
+  // 2. If match is not VIP gated, it is completely free for all visitors!
+  // 3. If match is VIP gated, check if visitor purchased VIP
   const isMatchVIP = (matchId: string) => {
     if (isAdminAuthed) return true;
+    if (!isMatchGatedVIP(matchId)) return true;
     if (!vipState.isVIP) return false;
     return vipState.unlockedMatches.includes('all') || vipState.unlockedMatches.includes(matchId);
   };
@@ -487,38 +566,59 @@ export default function App() {
         </div>
       )}
 
-      {/* Navbar */}
-      <Navbar
-        selectedSport={selectedSport}
-        onSelectSport={setSelectedSport}
-        onOpenFetchModal={() => setIsFetchModalOpen(true)}
-        onOpenTrackRecord={() => setIsTrackRecordOpen(true)}
-        onOpenPlayerLab={() => setIsPlayerLabOpen(true)}
-        onOpenPaywall={() => {
-          setSelectedMatchForPaywall(null);
-          setIsPaywallOpen(true);
-        }}
-        onOpenAdminConfig={() => setIsAdminConfigOpen(true)}
-        isVIP={isAdminAuthed || vipState.isVIP}
-        isAdminAuthed={isAdminAuthed}
-        whatsappChannelUrl={vipConfig.whatsappChannelUrl}
-        totalMatchesCount={matches.length}
-        accuracyPct={76.5}
-        theme={theme}
-        onToggleTheme={toggleTheme}
-      />
+      {/* ADMIN DASHBOARD VIEW (Accessed via /admindashboard or authenticated admin center) */}
+      {currentRoute === 'admin' ? (
+        <AdminDashboard
+          config={vipConfig}
+          plans={vipPlans}
+          onUpdateConfig={handleUpdatePaymentConfig}
+          isAdminAuthed={isAdminAuthed}
+          onAdminAuthSuccess={handleAdminAuthSuccess}
+          onAdminLogout={handleAdminLogout}
+          adminToken={adminToken}
+          onNavigateHome={handleNavigateHome}
+          matches={matches}
+          onToggleMatchVIP={handleToggleMatchVIP}
+          onRunPrediction={handleRunPrediction}
+          onSyncAllMatches={handleSyncAll}
+          onFetchMatches={handleFetchUpcoming}
+          predictingMatchId={predictingMatchId}
+          isMatchVIP={isMatchGatedVIP}
+        />
+      ) : (
+        <>
+          {/* Navbar */}
+          <Navbar
+            selectedSport={selectedSport}
+            onSelectSport={setSelectedSport}
+            onOpenFetchModal={() => setIsFetchModalOpen(true)}
+            onOpenTrackRecord={() => setIsTrackRecordOpen(true)}
+            onOpenPlayerLab={() => setIsPlayerLabOpen(true)}
+            onOpenPaywall={() => {
+              setSelectedMatchForPaywall(null);
+              setIsPaywallOpen(true);
+            }}
+            onOpenAdminConfig={handleNavigateAdmin}
+            isVIP={isAdminAuthed || vipState.isVIP}
+            isAdminAuthed={isAdminAuthed}
+            whatsappChannelUrl={vipConfig.whatsappChannelUrl}
+            totalMatchesCount={matches.length}
+            accuracyPct={76.5}
+            theme={theme}
+            onToggleTheme={toggleTheme}
+          />
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6 space-y-8 relative z-10">
-        {/* Spotlight Hero Banner (The Highest Stakes Upcoming Match) */}
-        {featuredMatch && (
-          <section className="relative rounded-3xl border border-stone-300/80 bg-gradient-to-br from-[#EAE5DD] via-[#F4EFEB] to-[#E7E2DA] shadow-sm dark:border-slate-800 dark:bg-gradient-to-r dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 dark:shadow-2xl p-6 sm:p-8 overflow-hidden transition-all">
-            {/* Background glowing gradients (toned down) */}
-            <div className="absolute -top-24 -left-24 w-72 h-72 rounded-full bg-amber-500/10 dark:bg-emerald-500/10 blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-24 -right-24 w-72 h-72 rounded-full bg-emerald-500/10 dark:bg-indigo-500/10 blur-3xl pointer-events-none" />
+          {/* Main Content Area */}
+          <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6 space-y-8 relative z-10">
+            {/* Spotlight Hero Banner (The Highest Stakes Upcoming Match) */}
+            {featuredMatch && (
+              <section className="relative rounded-3xl border border-stone-300/80 bg-gradient-to-br from-[#EAE5DD] via-[#F4EFEB] to-[#E7E2DA] shadow-sm dark:border-slate-800 dark:bg-gradient-to-r dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 dark:shadow-2xl p-6 sm:p-8 overflow-hidden transition-all">
+                {/* Background glowing gradients (toned down) */}
+                <div className="absolute -top-24 -left-24 w-72 h-72 rounded-full bg-amber-500/10 dark:bg-emerald-500/10 blur-3xl pointer-events-none" />
+                <div className="absolute -bottom-24 -right-24 w-72 h-72 rounded-full bg-emerald-500/10 dark:bg-indigo-500/10 blur-3xl pointer-events-none" />
 
-            <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-              <div className="max-w-2xl">
+                <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+                  <div className="max-w-2xl">
                 <div className="flex flex-wrap items-center gap-2 text-xs font-mono">
                   <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-950 dark:text-amber-400 font-bold border border-amber-600/30 flex items-center gap-1.5">
                     <Flame className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
@@ -888,22 +988,27 @@ export default function App() {
       <footer className="border-t border-stone-300 bg-[#E4DFD6] dark:border-slate-800/80 dark:bg-slate-950 py-6 px-4 mt-12 text-xs text-stone-600 dark:text-slate-500 font-mono transition-colors">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
           <div>
-            <span className="text-stone-800 dark:text-slate-300 font-bold">ApexMatch AI</span> • Big Match Predictor & Historical Player Performance Engine
+            <span className="text-stone-800 dark:text-slate-300 font-bold">ApexMatch AI</span> • Big Match Predictor &amp; Historical Player Performance Engine
           </div>
           <div className="flex flex-wrap items-center gap-2 sm:gap-3 justify-center sm:justify-end">
-            <span>Powered by Gemini 3.8 Flash • Real-Time Sports Intelligence & Quantitative Analytics</span>
-            <span className="text-stone-300 dark:text-slate-700 hidden sm:inline">•</span>
-            <button
-              onClick={() => setIsAdminConfigOpen(true)}
-              className="text-stone-500 hover:text-emerald-600 dark:text-slate-500 dark:hover:text-emerald-400 text-[11px] font-mono flex items-center gap-1 cursor-pointer transition-colors"
-              title="App Owner Access (Passcode Protected)"
-            >
-              <Lock className="w-3 h-3 text-stone-400 dark:text-slate-500" />
-              <span>{isAdminAuthed ? '👑 Owner Center Active' : 'Owner Portal'}</span>
-            </button>
+            <span>Powered by Gemini 3.8 Flash • Real-Time Sports Intelligence &amp; Quantitative Analytics</span>
+            {isAdminAuthed && (
+              <>
+                <span className="text-stone-300 dark:text-slate-700 hidden sm:inline">•</span>
+                <button
+                  type="button"
+                  onClick={handleNavigateAdmin}
+                  className="text-emerald-800 dark:text-emerald-400 font-bold hover:underline cursor-pointer"
+                >
+                  👑 Admin Dashboard
+                </button>
+              </>
+            )}
           </div>
         </div>
       </footer>
+      </>
+      )}
 
       {/* Modals */}
       {activeMatchForModal && (

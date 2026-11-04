@@ -191,23 +191,15 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span className="hidden sm:inline">Fetch Matches</span>
           </button>
 
-          {/* Owner WhatsApp & Paystack Settings (Protected by PIN) */}
-          {isAdminAuthed ? (
+          {/* Admin Dashboard shortcut (Visible ONLY when admin is logged in) */}
+          {isAdminAuthed && (
             <button
               onClick={onOpenAdminConfig}
               className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-amber-600/40 bg-amber-500/20 text-amber-950 dark:border-emerald-500/40 dark:bg-emerald-950/40 dark:text-emerald-300 text-xs font-mono font-bold hover:bg-amber-500/30 dark:hover:bg-emerald-900/50 transition-all cursor-pointer shadow-xs"
-              title="Owner Control Center (Authenticated)"
+              title="Open Admin Dashboard"
             >
               <Settings className="w-3.5 h-3.5 text-amber-700 dark:text-emerald-400" />
-              <span className="hidden sm:inline">Owner Center</span>
-            </button>
-          ) : (
-            <button
-              onClick={onOpenAdminConfig}
-              className="p-2 text-stone-500 hover:text-stone-900 dark:text-slate-600 dark:hover:text-slate-300 rounded-lg hover:bg-stone-300/50 dark:hover:bg-slate-900/60 transition-all cursor-pointer"
-              title="Owner Portal (PIN Required)"
-            >
-              <Lock className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Admin Dashboard</span>
             </button>
           )}
         </div>
