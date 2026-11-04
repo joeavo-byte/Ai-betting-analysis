@@ -217,8 +217,8 @@ export const VIPPaywallModal: React.FC<VIPPaywallModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-stone-900/40 dark:bg-slate-950/85 backdrop-blur-md overflow-y-auto">
-      <div className="relative w-full max-w-3xl my-auto rounded-3xl border border-stone-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-stone-900 dark:text-slate-100 shadow-2xl p-6 sm:p-8 overflow-hidden max-h-[92vh] flex flex-col transition-colors">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-stone-900/60 dark:bg-slate-950/85 backdrop-blur-md overflow-y-auto">
+      <div className="relative w-full max-w-3xl my-auto rounded-3xl border border-stone-300 dark:border-slate-800 bg-[#F5F2EB] dark:bg-slate-950 text-stone-900 dark:text-slate-100 shadow-2xl p-6 sm:p-8 overflow-hidden max-h-[92vh] flex flex-col transition-colors">
         {/* Glow Effects */}
         <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-emerald-500/10 dark:bg-emerald-500/15 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-amber-500/10 dark:bg-indigo-500/15 blur-3xl pointer-events-none" />
@@ -226,7 +226,7 @@ export const VIPPaywallModal: React.FC<VIPPaywallModalProps> = ({
         {/* Top Close */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-stone-500 dark:text-slate-300 hover:text-stone-900 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer z-10"
+          className="absolute top-5 right-5 w-8 h-8 rounded-full bg-[#DFD9CE] hover:bg-[#D4CEBF] dark:bg-slate-800 dark:hover:bg-slate-700 text-stone-700 dark:text-slate-300 hover:text-stone-950 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer z-10"
         >
           <X className="w-4 h-4" />
         </button>

@@ -165,10 +165,10 @@ export const AdminConfigModal: React.FC<AdminConfigModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-stone-900/40 dark:bg-slate-950/85 backdrop-blur-md overflow-y-auto">
-      <div className="relative w-full max-w-2xl my-auto rounded-3xl border border-stone-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-stone-900 dark:text-slate-100 shadow-2xl p-6 sm:p-8 overflow-hidden max-h-[92vh] flex flex-col transition-colors">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-stone-900/60 dark:bg-slate-950/85 backdrop-blur-md overflow-y-auto">
+      <div className="relative w-full max-w-2xl my-auto rounded-3xl border border-stone-300 dark:border-slate-800 bg-[#F5F2EB] dark:bg-slate-950 text-stone-900 dark:text-slate-100 shadow-2xl p-6 sm:p-8 overflow-hidden max-h-[92vh] flex flex-col transition-colors">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-stone-200 dark:border-slate-800">
+        <div className="flex items-center justify-between pb-4 border-b border-stone-300 dark:border-slate-800">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
               <Settings className="w-5 h-5" />

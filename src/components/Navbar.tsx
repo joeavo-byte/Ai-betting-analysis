@@ -60,16 +60,16 @@ export const Navbar: React.FC<NavbarProps> = ({
   ];
 
   return (
-    <header className="sticky top-0 z-30 border-b border-stone-200/80 bg-white/90 backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-950/85 transition-colors duration-200">
+    <header className="sticky top-0 z-30 border-b border-stone-300/80 bg-[#EBE6DF]/95 backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-950/85 transition-colors duration-200">
       {/* Top Banner / Ticker with warm ambient sports gradient */}
-      <div className="bg-gradient-to-r from-amber-500/10 via-stone-100 to-emerald-500/10 border-b border-stone-200/70 dark:from-emerald-950/40 dark:via-slate-900 dark:to-indigo-950/40 dark:border-slate-800/60 px-4 py-1.5 text-xs text-stone-700 dark:text-slate-300">
+      <div className="bg-[#E2DDD5] border-b border-stone-300/70 dark:from-emerald-950/40 dark:via-slate-900 dark:to-indigo-950/40 dark:border-slate-800/60 px-4 py-1.5 text-xs text-stone-700 dark:text-slate-300">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span className="flex h-2 w-2 relative">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600 dark:bg-emerald-400"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-700 dark:bg-emerald-400"></span>
             </span>
-            <span className="font-mono text-emerald-700 dark:text-emerald-400 font-semibold uppercase tracking-wider text-[11px]">
+            <span className="font-mono text-emerald-800 dark:text-emerald-400 font-bold uppercase tracking-wider text-[11px]">
               AI Sports Prediction Core Active
             </span>
             <span className="hidden sm:inline text-stone-400 dark:text-slate-500">•</span>
@@ -81,14 +81,14 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="flex items-center gap-3 font-mono text-[11px]">
             <button
               onClick={onOpenTrackRecord}
-              className="flex items-center gap-1.5 text-stone-700 hover:text-emerald-600 dark:text-slate-300 dark:hover:text-emerald-400 transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 text-stone-700 hover:text-emerald-800 dark:text-slate-300 dark:hover:text-emerald-400 transition-colors cursor-pointer"
             >
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
               <span>Historical Accuracy:</span>
-              <span className="font-bold text-emerald-700 dark:text-emerald-400">{accuracyPct}%</span>
-              <span className="text-stone-400 dark:text-slate-500 underline text-[10px] ml-0.5">Audit log</span>
+              <span className="font-bold text-emerald-800 dark:text-emerald-400">{accuracyPct}%</span>
+              <span className="text-stone-500 dark:text-slate-500 underline text-[10px] ml-0.5">Audit log</span>
             </button>
-            <span className="text-stone-300 dark:text-slate-600">|</span>
+            <span className="text-stone-400 dark:text-slate-600">|</span>
             <span className="text-stone-600 dark:text-slate-400">
               <span className="text-stone-900 dark:text-slate-200 font-semibold">{totalMatchesCount}</span> Loaded
             </span>
@@ -100,19 +100,19 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
         {/* Logo & Brand */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 via-emerald-600 to-teal-700 flex items-center justify-center shadow-md shadow-amber-500/15 border border-amber-400/40 text-white">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-600 via-emerald-700 to-teal-800 flex items-center justify-center shadow-md shadow-stone-400/20 border border-amber-500/30 text-white">
             <Trophy className="w-5 h-5 font-bold" />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-extrabold tracking-tight text-stone-900 dark:text-white font-['Plus_Jakarta_Sans']">
-                ApexMatch<span className="text-emerald-600 dark:text-emerald-400">AI</span>
+                ApexMatch<span className="text-emerald-700 dark:text-emerald-400">AI</span>
               </h1>
-              <span className="px-1.5 py-0.5 text-[10px] font-mono font-bold uppercase rounded bg-emerald-500/15 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-500/30">
+              <span className="px-1.5 py-0.5 text-[10px] font-mono font-bold uppercase rounded bg-emerald-600/20 text-emerald-900 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-600/30">
                 PRO
               </span>
             </div>
-            <p className="text-xs text-stone-500 dark:text-slate-400 hidden sm:block">
+            <p className="text-xs text-stone-600 dark:text-slate-400 hidden sm:block">
               Multi-League Match Winner Forecaster & Player Performance Engine
             </p>
           </div>
@@ -124,7 +124,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {onToggleTheme && (
             <button
               onClick={onToggleTheme}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-stone-200 bg-stone-100 hover:bg-stone-200/80 text-stone-800 dark:border-slate-800 dark:bg-slate-900/80 dark:hover:bg-slate-800 dark:text-slate-200 transition-all cursor-pointer shadow-xs text-xs font-mono font-medium"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-stone-300 bg-[#DFD9CE] hover:bg-[#D4CEBF] text-stone-800 dark:border-slate-800 dark:bg-slate-900/80 dark:hover:bg-slate-800 dark:text-slate-200 transition-all cursor-pointer shadow-xs text-xs font-mono font-medium"
               title={theme === 'dark' ? 'Switch to Warm Light Mode' : 'Switch to Dark Mode'}
               aria-label="Toggle theme"
             >
@@ -135,7 +135,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </>
               ) : (
                 <>
-                  <Moon className="w-4 h-4 text-indigo-600" />
+                  <Moon className="w-4 h-4 text-indigo-700" />
                   <span className="hidden md:inline text-[11px]">Dark</span>
                 </>
               )}
@@ -148,44 +148,44 @@ export const Navbar: React.FC<NavbarProps> = ({
               href={whatsappChannelUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg bg-emerald-500/15 text-emerald-800 border border-emerald-500/40 hover:bg-emerald-500/25 dark:bg-emerald-500/20 dark:text-emerald-300 dark:hover:bg-emerald-500/30 transition-all cursor-pointer shadow-xs"
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg bg-emerald-600/20 text-emerald-950 border border-emerald-600/40 hover:bg-emerald-600/30 dark:bg-emerald-500/20 dark:text-emerald-300 dark:hover:bg-emerald-500/30 transition-all cursor-pointer shadow-xs"
               title="Open official VIP WhatsApp Channel"
             >
-              <MessageCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <MessageCircle className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
               <span className="hidden sm:inline">VIP WhatsApp</span>
-              <ExternalLink className="w-3 h-3 text-emerald-600/80 dark:text-emerald-400/80" />
+              <ExternalLink className="w-3 h-3 text-emerald-700/80 dark:text-emerald-400/80" />
             </a>
           ) : (
             <button
               onClick={onOpenPaywall}
-              className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg bg-amber-500/15 text-amber-900 border border-amber-500/30 hover:bg-amber-500/25 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/30 dark:hover:bg-emerald-500/20 transition-all cursor-pointer shadow-xs"
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg bg-amber-500/20 text-amber-950 border border-amber-600/30 hover:bg-amber-500/30 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/30 dark:hover:bg-emerald-500/20 transition-all cursor-pointer shadow-xs"
               title="Unlock VIP Intel & WhatsApp Channel"
             >
-              <MessageCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <MessageCircle className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
               <span>VIP WhatsApp</span>
             </button>
           )}
 
           <button
             onClick={onOpenPlayerLab}
-            className="hidden md:flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg border border-stone-200 bg-stone-100 text-stone-700 hover:bg-stone-200 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:bg-slate-800 transition-all cursor-pointer shadow-xs"
+            className="hidden md:flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg border border-stone-300 bg-[#DFD9CE] text-stone-800 hover:bg-[#D4CEBF] dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:bg-slate-800 transition-all cursor-pointer shadow-xs"
             title="Compare star players head-to-head"
           >
-            <BarChart3 className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+            <BarChart3 className="w-4 h-4 text-indigo-700 dark:text-indigo-400" />
             <span>Player H2H Lab</span>
           </button>
 
           <button
             onClick={onOpenTrackRecord}
-            className="hidden lg:flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg border border-stone-200 bg-stone-100 text-stone-700 hover:bg-stone-200 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:bg-slate-800 transition-all cursor-pointer shadow-xs"
+            className="hidden lg:flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg border border-stone-300 bg-[#DFD9CE] text-stone-800 hover:bg-[#D4CEBF] dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:bg-slate-800 transition-all cursor-pointer shadow-xs"
           >
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <CheckCircle2 className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
             <span>Track Record</span>
           </button>
 
           <button
             onClick={onOpenFetchModal}
-            className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm dark:bg-emerald-500 dark:hover:bg-emerald-400 dark:text-slate-950 shadow-emerald-500/20 transition-all cursor-pointer active:scale-95"
+            className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white shadow-sm dark:bg-emerald-500 dark:hover:bg-emerald-400 dark:text-slate-950 shadow-emerald-500/20 transition-all cursor-pointer active:scale-95"
           >
             <Sparkles className="w-4 h-4" />
             <span className="hidden sm:inline">Fetch Matches</span>
@@ -195,16 +195,16 @@ export const Navbar: React.FC<NavbarProps> = ({
           {isAdminAuthed ? (
             <button
               onClick={onOpenAdminConfig}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-amber-500/40 bg-amber-50 text-amber-900 dark:border-emerald-500/40 dark:bg-emerald-950/40 dark:text-emerald-300 text-xs font-mono font-bold hover:bg-amber-100 dark:hover:bg-emerald-900/50 transition-all cursor-pointer shadow-xs"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-amber-600/40 bg-amber-500/20 text-amber-950 dark:border-emerald-500/40 dark:bg-emerald-950/40 dark:text-emerald-300 text-xs font-mono font-bold hover:bg-amber-500/30 dark:hover:bg-emerald-900/50 transition-all cursor-pointer shadow-xs"
               title="Owner Control Center (Authenticated)"
             >
-              <Settings className="w-3.5 h-3.5 text-amber-600 dark:text-emerald-400" />
+              <Settings className="w-3.5 h-3.5 text-amber-700 dark:text-emerald-400" />
               <span className="hidden sm:inline">Owner Center</span>
             </button>
           ) : (
             <button
               onClick={onOpenAdminConfig}
-              className="p-2 text-stone-400 hover:text-stone-700 dark:text-slate-600 dark:hover:text-slate-300 rounded-lg hover:bg-stone-100 dark:hover:bg-slate-900/60 transition-all cursor-pointer"
+              className="p-2 text-stone-500 hover:text-stone-900 dark:text-slate-600 dark:hover:text-slate-300 rounded-lg hover:bg-stone-300/50 dark:hover:bg-slate-900/60 transition-all cursor-pointer"
               title="Owner Portal (PIN Required)"
             >
               <Lock className="w-3.5 h-3.5" />
@@ -224,11 +224,11 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => onSelectSport(item.id)}
               className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
                 isActive
-                  ? 'bg-emerald-600 text-white border-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400 dark:border-emerald-500/40 shadow-xs'
-                  : 'bg-stone-100/80 text-stone-600 border-stone-200 hover:text-stone-900 hover:bg-stone-200/80 dark:bg-slate-900/60 dark:text-slate-400 dark:border-slate-800 dark:hover:text-slate-200 dark:hover:bg-slate-800/80 dark:hover:border-slate-700'
+                  ? 'bg-emerald-700 text-white border-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400 dark:border-emerald-500/40 shadow-xs'
+                  : 'bg-[#DFD9CE] text-stone-700 border-stone-300 hover:text-stone-950 hover:bg-[#D4CEBF] dark:bg-slate-900/60 dark:text-slate-400 dark:border-slate-800 dark:hover:text-slate-200 dark:hover:bg-slate-800/80 dark:hover:border-slate-700'
               }`}
             >
-              <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-white dark:text-emerald-400' : 'text-stone-500 dark:text-slate-500'}`} />
+              <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-white dark:text-emerald-400' : 'text-stone-600 dark:text-slate-500'}`} />
               <span>{item.label}</span>
             </button>
           );

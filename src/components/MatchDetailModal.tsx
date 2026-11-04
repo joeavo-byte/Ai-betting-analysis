@@ -85,25 +85,25 @@ export const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-stone-900/40 dark:bg-slate-950/85 backdrop-blur-md overflow-y-auto">
-      <div className="relative w-full max-w-5xl my-auto rounded-2xl border border-stone-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-stone-900 dark:text-slate-100 shadow-2xl overflow-hidden flex flex-col max-h-[92vh] transition-colors">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-stone-900/60 dark:bg-slate-950/85 backdrop-blur-md overflow-y-auto">
+      <div className="relative w-full max-w-5xl my-auto rounded-2xl border border-stone-300 dark:border-slate-800 bg-[#F5F2EB] dark:bg-slate-950 text-stone-900 dark:text-slate-100 shadow-2xl overflow-hidden flex flex-col max-h-[92vh] transition-colors">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-stone-200 dark:border-slate-800/80 px-6 py-4 bg-stone-50/90 dark:bg-slate-900/80">
+        <div className="flex items-center justify-between border-b border-stone-300 dark:border-slate-800/80 px-6 py-4 bg-[#EAE5DD] dark:bg-slate-900/80">
           <div>
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-mono text-xs border border-emerald-500/20 font-semibold">
+              <span className="px-2.5 py-0.5 rounded-full bg-emerald-600/20 text-emerald-950 dark:text-emerald-400 font-mono text-xs border border-emerald-600/30 font-bold">
                 {match.tournament}
               </span>
-              <span className="text-stone-500 dark:text-slate-400 font-mono text-xs">• {match.roundOrStage}</span>
+              <span className="text-stone-600 dark:text-slate-400 font-mono text-xs">• {match.roundOrStage}</span>
             </div>
             <h2 className="text-lg sm:text-xl font-extrabold text-stone-900 dark:text-white mt-1">
-              {homeTeam.name} <span className="text-stone-400 dark:text-slate-400 font-normal">vs</span> {awayTeam.name}
+              {homeTeam.name} <span className="text-stone-500 dark:text-slate-400 font-normal">vs</span> {awayTeam.name}
             </h2>
           </div>
 
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-stone-500 dark:text-slate-300 hover:text-stone-900 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+            className="w-9 h-9 rounded-full bg-[#DFD9CE] hover:bg-[#D4CEBF] dark:bg-slate-800 dark:hover:bg-slate-700 text-stone-700 dark:text-slate-300 hover:text-stone-950 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>

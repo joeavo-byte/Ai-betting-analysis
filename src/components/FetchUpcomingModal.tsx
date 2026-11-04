@@ -76,10 +76,10 @@ export const FetchUpcomingModal: React.FC<FetchUpcomingModalProps> = ({
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/40 dark:bg-slate-950/85 backdrop-blur-md overflow-y-auto">
-      <div className="relative w-full max-w-xl rounded-2xl border border-stone-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-stone-900 dark:text-slate-100 shadow-2xl p-6 overflow-hidden my-8 transition-colors">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 dark:bg-slate-950/85 backdrop-blur-md overflow-y-auto">
+      <div className="relative w-full max-w-xl rounded-2xl border border-stone-300 dark:border-slate-800 bg-[#F5F2EB] dark:bg-slate-950 text-stone-900 dark:text-slate-100 shadow-2xl p-6 overflow-hidden my-8 transition-colors">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-stone-200 dark:border-slate-800">
+        <div className="flex items-center justify-between pb-4 border-b border-stone-300 dark:border-slate-800">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
               <Globe className="w-5 h-5" />
