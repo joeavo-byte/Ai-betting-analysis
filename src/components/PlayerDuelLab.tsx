@@ -67,17 +67,17 @@ export const PlayerDuelLab: React.FC<PlayerDuelLabProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/85 backdrop-blur-md overflow-y-auto">
-      <div className="relative w-full max-w-4xl my-auto rounded-2xl border border-slate-800 bg-slate-950 text-slate-100 shadow-2xl p-6 overflow-hidden max-h-[92vh] flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-stone-900/40 dark:bg-slate-950/85 backdrop-blur-md overflow-y-auto">
+      <div className="relative w-full max-w-4xl my-auto rounded-2xl border border-stone-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-stone-900 dark:text-slate-100 shadow-2xl p-6 overflow-hidden max-h-[92vh] flex flex-col transition-colors">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div className="flex items-center justify-between pb-4 border-b border-stone-200 dark:border-slate-800">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+            <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
               <BarChart3 className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-white">Player Head-to-Head Radar Lab</h3>
-              <p className="text-xs text-slate-400">
+              <h3 className="text-lg font-bold text-stone-900 dark:text-white">Player Head-to-Head Radar Lab</h3>
+              <p className="text-xs text-stone-500 dark:text-slate-400">
                 Compare multi-dimensional historical performance metrics & tactical attributes
               </p>
             </div>
@@ -85,17 +85,17 @@ export const PlayerDuelLab: React.FC<PlayerDuelLabProps> = ({
 
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-stone-500 dark:text-slate-300 hover:text-stone-900 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Player Selectors */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5 pb-4 border-b border-slate-800">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5 pb-4 border-b border-stone-200 dark:border-slate-800">
           {/* Player 1 Selector */}
-          <div className="p-3 rounded-xl bg-slate-900/60 border border-emerald-500/30">
-            <label className="text-[11px] font-mono uppercase text-emerald-400 font-bold block mb-1">
+          <div className="p-3 rounded-xl bg-stone-50 dark:bg-slate-900/60 border border-emerald-500/30">
+            <label className="text-[11px] font-mono uppercase text-emerald-700 dark:text-emerald-400 font-bold block mb-1">
               Primary Player (Green)
             </label>
             <select
@@ -104,7 +104,7 @@ export const PlayerDuelLab: React.FC<PlayerDuelLabProps> = ({
                 setPlayer1Id(e.target.value);
                 setDuelResult(null);
               }}
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-emerald-500"
+              className="w-full bg-white dark:bg-slate-950 border border-stone-200 dark:border-slate-800 rounded-lg px-3 py-2 text-xs text-stone-800 dark:text-slate-200 focus:outline-none focus:border-emerald-500"
             >
               {allPlayers.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -115,8 +115,8 @@ export const PlayerDuelLab: React.FC<PlayerDuelLabProps> = ({
           </div>
 
           {/* Player 2 Selector */}
-          <div className="p-3 rounded-xl bg-slate-900/60 border border-indigo-500/30">
-            <label className="text-[11px] font-mono uppercase text-indigo-400 font-bold block mb-1">
+          <div className="p-3 rounded-xl bg-stone-50 dark:bg-slate-900/60 border border-indigo-500/30">
+            <label className="text-[11px] font-mono uppercase text-indigo-700 dark:text-indigo-400 font-bold block mb-1">
               Comparison Player (Indigo)
             </label>
             <select
@@ -125,7 +125,7 @@ export const PlayerDuelLab: React.FC<PlayerDuelLabProps> = ({
                 setPlayer2Id(e.target.value);
                 setDuelResult(null);
               }}
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
+              className="w-full bg-white dark:bg-slate-950 border border-stone-200 dark:border-slate-800 rounded-lg px-3 py-2 text-xs text-stone-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500"
             >
               {allPlayers.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -142,8 +142,8 @@ export const PlayerDuelLab: React.FC<PlayerDuelLabProps> = ({
             <>
               {/* Dual Radar Overlay */}
               <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-                <div className="md:col-span-6 flex flex-col items-center p-4 bg-slate-900/40 rounded-xl border border-slate-800">
-                  <span className="text-xs font-mono uppercase tracking-wider text-slate-400 font-semibold mb-2">
+                <div className="md:col-span-6 flex flex-col items-center p-4 bg-stone-50 dark:bg-slate-900/40 rounded-xl border border-stone-200 dark:border-slate-800">
+                  <span className="text-xs font-mono uppercase tracking-wider text-stone-500 dark:text-slate-400 font-semibold mb-2">
                     Attribute Polygon Overlay
                   </span>
                   <PlayerRadarChart
@@ -157,10 +157,10 @@ export const PlayerDuelLab: React.FC<PlayerDuelLabProps> = ({
 
                 {/* Side-by-side Attribute Breakdown */}
                 <div className="md:col-span-6 space-y-3">
-                  <div className="flex justify-between items-center text-xs font-mono font-bold pb-1 border-b border-slate-800">
-                    <span className="text-emerald-400">{player1.name}</span>
-                    <span className="text-slate-500">Metric</span>
-                    <span className="text-indigo-400">{player2.name}</span>
+                  <div className="flex justify-between items-center text-xs font-mono font-bold pb-1 border-b border-stone-200 dark:border-slate-800">
+                    <span className="text-emerald-700 dark:text-emerald-400">{player1.name}</span>
+                    <span className="text-stone-400 dark:text-slate-500">Metric</span>
+                    <span className="text-indigo-700 dark:text-indigo-400">{player2.name}</span>
                   </div>
 
                   {[
@@ -179,22 +179,22 @@ export const PlayerDuelLab: React.FC<PlayerDuelLabProps> = ({
                     return (
                       <div key={attr.key} className="space-y-1">
                         <div className="flex justify-between text-xs font-mono">
-                          <span className={`${p1Higher ? 'text-emerald-400 font-bold' : 'text-slate-400'}`}>
+                          <span className={`${p1Higher ? 'text-emerald-700 dark:text-emerald-400 font-bold' : 'text-stone-500 dark:text-slate-400'}`}>
                             {v1}
                           </span>
-                          <span className="text-slate-300 font-semibold">{attr.label}</span>
-                          <span className={`${p2Higher ? 'text-indigo-400 font-bold' : 'text-slate-400'}`}>
+                          <span className="text-stone-800 dark:text-slate-300 font-semibold">{attr.label}</span>
+                          <span className={`${p2Higher ? 'text-indigo-700 dark:text-indigo-400 font-bold' : 'text-stone-500 dark:text-slate-400'}`}>
                             {v2}
                           </span>
                         </div>
-                        <div className="grid grid-cols-2 gap-1 h-1.5 rounded-full overflow-hidden bg-slate-800">
-                          <div className="flex justify-end bg-slate-800">
+                        <div className="grid grid-cols-2 gap-1 h-1.5 rounded-full overflow-hidden bg-stone-200 dark:bg-slate-800">
+                          <div className="flex justify-end bg-stone-200 dark:bg-slate-800">
                             <div
                               className="bg-emerald-500 h-full rounded-l-full"
                               style={{ width: `${v1}%` }}
                             />
                           </div>
-                          <div className="flex justify-start bg-slate-800">
+                          <div className="flex justify-start bg-stone-200 dark:bg-slate-800">
                             <div
                               className="bg-indigo-500 h-full rounded-r-full"
                               style={{ width: `${v2}%` }}
@@ -208,17 +208,17 @@ export const PlayerDuelLab: React.FC<PlayerDuelLabProps> = ({
               </div>
 
               {/* AI Duel Verdict Section */}
-              <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+              <div className="rounded-xl border border-stone-200 dark:border-slate-800 bg-stone-50 dark:bg-slate-900/60 p-5">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <Brain className="w-5 h-5 text-emerald-400" />
-                    <h4 className="text-sm font-bold text-white">AI Qualitative Head-to-Head Breakdown</h4>
+                    <Brain className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                    <h4 className="text-sm font-bold text-stone-900 dark:text-white">AI Qualitative Head-to-Head Breakdown</h4>
                   </div>
 
                   <button
                     onClick={handleRunAIDuelAnalysis}
                     disabled={analyzingDuel}
-                    className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-lg transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-slate-950 font-bold text-xs rounded-lg transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
                   >
                     <Sparkles className={`w-3.5 h-3.5 ${analyzingDuel ? 'animate-spin' : ''}`} />
                     <span>{analyzingDuel ? 'Simulating...' : 'Analyze Matchup Edge'}</span>
@@ -226,35 +226,35 @@ export const PlayerDuelLab: React.FC<PlayerDuelLabProps> = ({
                 </div>
 
                 {duelResult ? (
-                  <div className="space-y-3 mt-3 pt-3 border-t border-slate-800">
-                    <div className="flex items-center gap-2 text-sm font-extrabold text-white">
+                  <div className="space-y-3 mt-3 pt-3 border-t border-stone-200 dark:border-slate-800">
+                    <div className="flex items-center gap-2 text-sm font-extrabold text-stone-900 dark:text-white">
                       <span>Statistical Edge:</span>
-                      <span className="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 font-mono">
+                      <span className="text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 font-mono">
                         {duelResult.verdict} ({duelResult.advantagePct}% Advantage)
                       </span>
                     </div>
 
-                    <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                    <p className="text-xs sm:text-sm text-stone-600 dark:text-slate-300 leading-relaxed">
                       {duelResult.tacticalDuel}
                     </p>
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 text-xs font-mono">
                       {Object.entries(duelResult.keyCategoryWinners || {}).map(([cat, winner]: [string, any]) => (
-                        <div key={cat} className="p-2 rounded bg-slate-950 border border-slate-800">
-                          <span className="text-[10px] text-slate-500 uppercase block truncate">{cat}</span>
-                          <span className="text-white font-bold truncate block">{winner}</span>
+                        <div key={cat} className="p-2 rounded bg-white dark:bg-slate-950 border border-stone-200 dark:border-slate-800">
+                          <span className="text-[10px] text-stone-400 dark:text-slate-500 uppercase block truncate">{cat}</span>
+                          <span className="text-stone-900 dark:text-white font-bold truncate block">{winner}</span>
                         </div>
                       ))}
                     </div>
 
                     {duelResult.historicalFunFact && (
-                      <div className="p-2.5 rounded bg-indigo-950/20 border border-indigo-500/30 text-xs text-indigo-300">
+                      <div className="p-2.5 rounded bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-500/30 text-xs text-indigo-800 dark:text-indigo-300">
                         ⭐ <strong>Historical Nuance:</strong> {duelResult.historicalFunFact}
                       </div>
                     )}
                   </div>
                 ) : (
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-stone-500 dark:text-slate-400">
                     Click &ldquo;Analyze Matchup Edge&rdquo; to simulate how these two stars impact game state and who holds the decisive statistical edge.
                   </p>
                 )}

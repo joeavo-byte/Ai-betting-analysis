@@ -85,38 +85,38 @@ export const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/85 backdrop-blur-md overflow-y-auto">
-      <div className="relative w-full max-w-5xl my-auto rounded-2xl border border-slate-800 bg-slate-950 text-slate-100 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-stone-900/40 dark:bg-slate-950/85 backdrop-blur-md overflow-y-auto">
+      <div className="relative w-full max-w-5xl my-auto rounded-2xl border border-stone-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-stone-900 dark:text-slate-100 shadow-2xl overflow-hidden flex flex-col max-h-[92vh] transition-colors">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-800/80 px-6 py-4 bg-slate-900/80">
+        <div className="flex items-center justify-between border-b border-stone-200 dark:border-slate-800/80 px-6 py-4 bg-stone-50/90 dark:bg-slate-900/80">
           <div>
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-mono text-xs border border-emerald-500/20 font-semibold">
+              <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-mono text-xs border border-emerald-500/20 font-semibold">
                 {match.tournament}
               </span>
-              <span className="text-slate-400 font-mono text-xs">• {match.roundOrStage}</span>
+              <span className="text-stone-500 dark:text-slate-400 font-mono text-xs">• {match.roundOrStage}</span>
             </div>
-            <h2 className="text-lg sm:text-xl font-extrabold text-white mt-1">
-              {homeTeam.name} <span className="text-slate-400 font-normal">vs</span> {awayTeam.name}
+            <h2 className="text-lg sm:text-xl font-extrabold text-stone-900 dark:text-white mt-1">
+              {homeTeam.name} <span className="text-stone-400 dark:text-slate-400 font-normal">vs</span> {awayTeam.name}
             </h2>
           </div>
 
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+            className="w-9 h-9 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-stone-500 dark:text-slate-300 hover:text-stone-900 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex items-center gap-1 border-b border-slate-800 px-6 bg-slate-900/40 overflow-x-auto scrollbar-none">
+        <div className="flex items-center gap-1 border-b border-stone-200 dark:border-slate-800 px-6 bg-stone-50/50 dark:bg-slate-900/40 overflow-x-auto scrollbar-none">
           <button
             onClick={() => setActiveTab('prediction')}
             className={`flex items-center gap-2 py-3 px-3.5 text-xs font-semibold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'prediction'
-                ? 'border-emerald-500 text-emerald-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-emerald-600 text-emerald-700 dark:border-emerald-500 dark:text-emerald-400'
+                : 'border-transparent text-stone-600 dark:text-slate-400 hover:text-stone-900 dark:hover:text-slate-200'
             }`}
           >
             <Brain className="w-4 h-4" />
@@ -127,8 +127,8 @@ export const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
             onClick={() => setActiveTab('players')}
             className={`flex items-center gap-2 py-3 px-3.5 text-xs font-semibold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'players'
-                ? 'border-emerald-500 text-emerald-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-emerald-600 text-emerald-700 dark:border-emerald-500 dark:text-emerald-400'
+                : 'border-transparent text-stone-600 dark:text-slate-400 hover:text-stone-900 dark:hover:text-slate-200'
             }`}
           >
             <Users className="w-4 h-4" />
@@ -139,8 +139,8 @@ export const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
             onClick={() => setActiveTab('simulation')}
             className={`flex items-center gap-2 py-3 px-3.5 text-xs font-semibold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'simulation'
-                ? 'border-emerald-500 text-emerald-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-emerald-600 text-emerald-700 dark:border-emerald-500 dark:text-emerald-400'
+                : 'border-transparent text-stone-600 dark:text-slate-400 hover:text-stone-900 dark:hover:text-slate-200'
             }`}
           >
             <BarChart3 className="w-4 h-4" />
@@ -151,8 +151,8 @@ export const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
             onClick={() => setActiveTab('whatif')}
             className={`flex items-center gap-2 py-3 px-3.5 text-xs font-semibold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'whatif'
-                ? 'border-emerald-500 text-emerald-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-emerald-600 text-emerald-700 dark:border-emerald-500 dark:text-emerald-400'
+                : 'border-transparent text-stone-600 dark:text-slate-400 hover:text-stone-900 dark:hover:text-slate-200'
             }`}
           >
             <SlidersHorizontal className="w-4 h-4" />

@@ -165,25 +165,25 @@ export const AdminConfigModal: React.FC<AdminConfigModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/85 backdrop-blur-md overflow-y-auto">
-      <div className="relative w-full max-w-2xl my-auto rounded-3xl border border-slate-800 bg-slate-950 text-slate-100 shadow-2xl p-6 sm:p-8 overflow-hidden max-h-[92vh] flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-stone-900/40 dark:bg-slate-950/85 backdrop-blur-md overflow-y-auto">
+      <div className="relative w-full max-w-2xl my-auto rounded-3xl border border-stone-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-stone-900 dark:text-slate-100 shadow-2xl p-6 sm:p-8 overflow-hidden max-h-[92vh] flex flex-col transition-colors">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div className="flex items-center justify-between pb-4 border-b border-stone-200 dark:border-slate-800">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
               <Settings className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-lg font-bold text-white">Owner Control Center</h3>
+                <h3 className="text-lg font-bold text-stone-900 dark:text-white">Owner Control Center</h3>
                 {isAdminAuthed && (
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-mono font-bold flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 text-[10px] font-mono font-bold flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                     Owner Authenticated
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-stone-500 dark:text-slate-400">
                 Protected configuration for WhatsApp Channel link, Paystack keys & transactions
               </p>
             </div>
@@ -191,7 +191,7 @@ export const AdminConfigModal: React.FC<AdminConfigModalProps> = ({
 
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-stone-500 dark:text-slate-300 hover:text-stone-900 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -201,38 +201,38 @@ export const AdminConfigModal: React.FC<AdminConfigModalProps> = ({
         {!isAdminAuthed ? (
           /* PASSCODE AUTHENTICATION GATE */
           <div className="py-8 sm:py-12 text-center max-w-md mx-auto space-y-5 my-auto">
-            <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border-2 border-amber-500/30 text-amber-400 mx-auto flex items-center justify-center shadow-lg shadow-amber-500/10">
+            <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border-2 border-amber-500/30 text-amber-600 dark:text-amber-400 mx-auto flex items-center justify-center shadow-lg shadow-amber-500/10">
               <Lock className="w-8 h-8" />
             </div>
 
             <div>
-              <span className="px-3 py-1 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 text-[10px] font-mono font-bold uppercase tracking-wider">
+              <span className="px-3 py-1 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 text-[10px] font-mono font-bold uppercase tracking-wider">
                 Owner Authentication Required
               </span>
-              <h3 className="text-xl sm:text-2xl font-black text-white mt-2">
+              <h3 className="text-xl sm:text-2xl font-black text-stone-900 dark:text-white mt-2">
                 Enter Your Secret Owner PIN
               </h3>
-              <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">
+              <p className="text-xs text-stone-500 dark:text-slate-400 mt-1.5 leading-relaxed">
                 This panel is strictly restricted to the app owner. Public users cannot access or view your credentials, links, or customer payments.
               </p>
             </div>
 
             <form onSubmit={handleVerifyPin} className="space-y-3 pt-2">
               <div className="relative">
-                <KeyRound className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <KeyRound className="w-4 h-4 text-stone-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="password"
                   value={pinInput}
                   onChange={(e) => setPinInput(e.target.value)}
                   placeholder="Enter 4-digit PIN (Default: 8821)"
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-3 text-sm text-center font-mono tracking-widest text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-stone-50 dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl pl-10 pr-4 py-3 text-sm text-center font-mono tracking-widest text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-slate-500 focus:outline-none focus:border-emerald-500"
                   autoFocus
                 />
               </div>
 
               {pinError && (
-                <div className="p-2.5 rounded-xl bg-rose-950/40 border border-rose-500/40 text-rose-300 text-xs flex items-center justify-center gap-1.5">
-                  <ShieldAlert className="w-4 h-4 text-rose-400 shrink-0" />
+                <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-500/40 text-rose-700 dark:text-rose-300 text-xs flex items-center justify-center gap-1.5">
+                  <ShieldAlert className="w-4 h-4 text-rose-500 dark:text-rose-400 shrink-0" />
                   <span>{pinError}</span>
                 </div>
               )}
@@ -240,15 +240,15 @@ export const AdminConfigModal: React.FC<AdminConfigModalProps> = ({
               <button
                 type="submit"
                 disabled={verifyingPin || !pinInput.trim()}
-                className="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs sm:text-sm shadow-lg shadow-emerald-500/25 transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-slate-950 font-black text-xs sm:text-sm shadow-lg shadow-emerald-500/25 transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 <Unlock className="w-4 h-4" />
                 <span>{verifyingPin ? 'Verifying...' : 'Unlock Owner Settings'}</span>
               </button>
             </form>
 
-            <p className="text-[11px] font-mono text-slate-500">
-              Default factory PIN is <strong className="text-slate-300">8821</strong>. You can change this inside once unlocked.
+            <p className="text-[11px] font-mono text-stone-500 dark:text-slate-500">
+              Default factory PIN is <strong className="text-stone-800 dark:text-slate-300">8821</strong>. You can change this inside once unlocked.
             </p>
           </div>
         ) : (

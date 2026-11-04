@@ -76,23 +76,23 @@ export const FetchUpcomingModal: React.FC<FetchUpcomingModalProps> = ({
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md overflow-y-auto">
-      <div className="relative w-full max-w-xl rounded-2xl border border-slate-800 bg-slate-950 text-slate-100 shadow-2xl p-6 overflow-hidden my-8">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/40 dark:bg-slate-950/85 backdrop-blur-md overflow-y-auto">
+      <div className="relative w-full max-w-xl rounded-2xl border border-stone-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-stone-900 dark:text-slate-100 shadow-2xl p-6 overflow-hidden my-8 transition-colors">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div className="flex items-center justify-between pb-4 border-b border-stone-200 dark:border-slate-800">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
               <Globe className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white">Fetch Live Upcoming Big Matches</h3>
-              <p className="text-xs text-slate-400">Sync all major world leagues, tournaments & star players</p>
+              <h3 className="text-base font-bold text-stone-900 dark:text-white">Fetch Live Upcoming Big Matches</h3>
+              <p className="text-xs text-stone-500 dark:text-slate-400">Sync all major world leagues, tournaments & star players</p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-stone-500 dark:text-slate-300 hover:text-stone-900 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -101,13 +101,13 @@ export const FetchUpcomingModal: React.FC<FetchUpcomingModalProps> = ({
         {/* Form Body */}
         <div className="mt-5 space-y-4">
           {/* Quick Slate Batch Sync Banner */}
-          <div className="p-3.5 rounded-xl border border-emerald-500/30 bg-emerald-950/20 flex items-center justify-between gap-3">
+          <div className="p-3.5 rounded-xl border border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-950/20 flex items-center justify-between gap-3">
             <div>
-              <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-300">
-                <Flame className="w-4 h-4 text-emerald-400 shrink-0" />
+              <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-800 dark:text-emerald-300">
+                <Flame className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                 <span>Full International Slate (20+ Matches)</span>
               </div>
-              <p className="text-[11px] text-slate-400 mt-0.5">
+              <p className="text-[11px] text-stone-600 dark:text-slate-400 mt-0.5">
                 Loads complete fixtures across Premier League, La Liga, Serie A, Bundesliga, NBA, Tennis & NFL.
               </p>
             </div>
@@ -115,7 +115,7 @@ export const FetchUpcomingModal: React.FC<FetchUpcomingModalProps> = ({
               type="button"
               disabled={loading}
               onClick={() => handleFetch('all', 'sync-all')}
-              className="shrink-0 px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition-all cursor-pointer shadow-md flex items-center gap-1 disabled:opacity-50"
+              className="shrink-0 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-slate-950 font-bold text-xs transition-all cursor-pointer shadow-sm flex items-center gap-1 disabled:opacity-50"
             >
               <Layers className="w-3.5 h-3.5" />
               <span>Sync All Slate</span>
@@ -124,7 +124,7 @@ export const FetchUpcomingModal: React.FC<FetchUpcomingModalProps> = ({
 
           {/* Sport Selector */}
           <div>
-            <label className="text-xs font-mono uppercase tracking-wider text-slate-400 font-semibold block mb-2">
+            <label className="text-xs font-mono uppercase tracking-wider text-stone-500 dark:text-slate-400 font-semibold block mb-2">
               Filter by Sport Category
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -141,8 +141,8 @@ export const FetchUpcomingModal: React.FC<FetchUpcomingModalProps> = ({
                   onClick={() => setSelectedSport(s.id)}
                   className={`py-2 px-3 rounded-lg text-xs font-semibold border transition-all cursor-pointer text-left ${
                     selectedSport === s.id
-                      ? 'bg-emerald-500/15 border-emerald-500 text-emerald-400 shadow-sm'
-                      : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
+                      ? 'bg-emerald-500/15 border-emerald-500 text-emerald-700 dark:text-emerald-400 shadow-sm'
+                      : 'bg-stone-50 dark:bg-slate-900 border-stone-200 dark:border-slate-800 text-stone-600 dark:text-slate-400 hover:text-stone-900 dark:hover:text-slate-200 hover:border-stone-300 dark:hover:border-slate-700'
                   }`}
                 >
                   {s.label}
@@ -153,11 +153,11 @@ export const FetchUpcomingModal: React.FC<FetchUpcomingModalProps> = ({
 
           {/* Custom Search / Query Input */}
           <div>
-            <label className="text-xs font-mono uppercase tracking-wider text-slate-400 font-semibold block mb-1.5">
+            <label className="text-xs font-mono uppercase tracking-wider text-stone-500 dark:text-slate-400 font-semibold block mb-1.5">
               Specific Match, League or Team
             </label>
             <div className="relative">
-              <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-stone-400 dark:text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={customQuery}
@@ -168,14 +168,14 @@ export const FetchUpcomingModal: React.FC<FetchUpcomingModalProps> = ({
                   }
                 }}
                 placeholder="e.g. Serie A, Chelsea vs Tottenham, Arsenal, Lakers, Alcaraz..."
-                className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-4 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                className="w-full bg-stone-50 dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl pl-9 pr-4 py-2.5 text-xs text-stone-900 dark:text-slate-100 placeholder-stone-400 dark:placeholder-slate-500 focus:outline-none focus:border-emerald-500"
               />
             </div>
           </div>
 
           {/* Major League Quick Presets */}
           <div>
-            <span className="text-[11px] font-mono text-slate-400 block mb-1.5 uppercase font-semibold">
+            <span className="text-[11px] font-mono text-stone-500 dark:text-slate-400 block mb-1.5 uppercase font-semibold">
               Or pick a major league / tournament to fetch:
             </span>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
@@ -189,10 +189,10 @@ export const FetchUpcomingModal: React.FC<FetchUpcomingModalProps> = ({
                     setCustomQuery(preset.query);
                     handleFetch(preset.sport, preset.query);
                   }}
-                  className="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800/80 border border-slate-800 hover:border-emerald-500/50 text-[11px] text-slate-300 hover:text-emerald-400 transition-all cursor-pointer text-left flex items-center justify-between"
+                  className="px-2.5 py-1.5 rounded-lg bg-stone-50 hover:bg-stone-100 dark:bg-slate-900 dark:hover:bg-slate-800/80 border border-stone-200 dark:border-slate-800 hover:border-emerald-500/50 text-[11px] text-stone-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all cursor-pointer text-left flex items-center justify-between"
                 >
                   <span>{preset.label}</span>
-                  <ArrowRight className="w-3 h-3 text-slate-600 group-hover:text-emerald-400" />
+                  <ArrowRight className="w-3 h-3 text-stone-400 dark:text-slate-600 group-hover:text-emerald-500" />
                 </button>
               ))}
             </div>
@@ -203,14 +203,14 @@ export const FetchUpcomingModal: React.FC<FetchUpcomingModalProps> = ({
             <div
               className={`p-3 rounded-xl border text-xs flex items-center gap-2 ${
                 resultMsg.type === 'success'
-                  ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300'
-                  : 'bg-rose-950/40 border-rose-500/40 text-rose-300'
+                  ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500/40 text-emerald-800 dark:text-emerald-300'
+                  : 'bg-rose-50 dark:bg-rose-950/40 border-rose-500/40 text-rose-800 dark:text-rose-300'
               }`}
             >
               {resultMsg.type === 'success' ? (
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
               ) : (
-                <X className="w-4 h-4 text-rose-400 shrink-0" />
+                <X className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
               )}
               <span>{resultMsg.text}</span>
             </div>
@@ -218,22 +218,22 @@ export const FetchUpcomingModal: React.FC<FetchUpcomingModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between">
-          <span className="text-[11px] font-mono text-slate-500">
+        <div className="mt-6 pt-4 border-t border-stone-200 dark:border-slate-800 flex items-center justify-between">
+          <span className="text-[11px] font-mono text-stone-400 dark:text-slate-500">
             Multi-League Sports Grounding Engine
           </span>
 
           <div className="flex items-center gap-2">
             <button
               onClick={onClose}
-              className="px-3 py-2 rounded-xl text-xs text-slate-400 hover:text-white cursor-pointer"
+              className="px-3 py-2 rounded-xl text-xs text-stone-500 hover:text-stone-800 dark:text-slate-400 dark:hover:text-white cursor-pointer"
             >
               Cancel
             </button>
             <button
               onClick={() => handleFetch()}
               disabled={loading}
-              className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 transition-all cursor-pointer flex items-center gap-2 disabled:opacity-50"
+              className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 transition-all cursor-pointer flex items-center gap-2 disabled:opacity-50"
             >
               {loading ? (
                 <>

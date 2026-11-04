@@ -143,7 +143,8 @@ export const PlayerRadarChart: React.FC<RadarProps> = ({
               cy={y}
               r="3.5"
               fill={primaryColor}
-              stroke="#0f172a"
+              stroke="#ffffff"
+              className="dark:stroke-[#0f172a]"
               strokeWidth="1.5"
             />
           );
@@ -164,9 +165,9 @@ export const PlayerRadarChart: React.FC<RadarProps> = ({
               y={y}
               textAnchor="middle"
               dominantBaseline="middle"
-              className="text-[10px] font-mono fill-slate-400 font-semibold"
+              className="text-[10px] font-mono fill-stone-600 dark:fill-slate-400 font-semibold"
             >
-              {item.label} <tspan className="fill-emerald-400 font-bold">{val}</tspan>
+              {item.label} <tspan className="fill-emerald-600 dark:fill-emerald-400 font-bold">{val}</tspan>
             </text>
           );
         })}
@@ -177,11 +178,11 @@ export const PlayerRadarChart: React.FC<RadarProps> = ({
         <div className="flex items-center gap-4 mt-2 text-xs font-mono">
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: primaryColor }} />
-            <span className="text-slate-300 truncate max-w-[90px]">{playerName}</span>
+            <span className="text-stone-700 dark:text-slate-300 truncate max-w-[90px]">{playerName}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: secondaryColor }} />
-            <span className="text-slate-300 truncate max-w-[90px]">{comparisonName}</span>
+            <span className="text-stone-700 dark:text-slate-300 truncate max-w-[90px]">{comparisonName}</span>
           </div>
         </div>
       )}

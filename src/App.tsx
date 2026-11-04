@@ -110,6 +110,30 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortBy, setSortBy] = useState<'importance' | 'date'>('importance');
 
+  // Light / Dark Theme State (Default is 'light' as requested)
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    try {
+      const stored = localStorage.getItem('apexmatch_theme');
+      if (stored === 'dark' || stored === 'light') return stored;
+    } catch (e) {}
+    return 'light'; // Default to light!
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('apexmatch_theme', theme);
+    } catch (e) {}
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+  };
+
   // Modals state
   const [activeMatchForModal, setActiveMatchForModal] = useState<Match | null>(null);
   const [isFetchModalOpen, setIsFetchModalOpen] = useState<boolean>(false);
@@ -450,10 +474,14 @@ export default function App() {
   }, [matches]);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-['Plus_Jakarta_Sans']">
+    <div className="min-h-screen transition-colors duration-200 bg-[#FAF8F5] text-stone-900 dark:bg-slate-950 dark:text-slate-100 flex flex-col font-['Plus_Jakarta_Sans'] relative overflow-x-hidden">
+      {/* Subtle ambient warm sports lighting */}
+      <div className="absolute -top-32 left-1/4 w-[500px] h-[500px] rounded-full bg-gradient-to-br from-amber-400/10 to-emerald-400/10 dark:from-emerald-500/10 dark:to-indigo-500/10 blur-3xl pointer-events-none" />
+      <div className="absolute top-[420px] -right-20 w-[450px] h-[450px] rounded-full bg-gradient-to-br from-amber-300/10 to-orange-200/10 dark:from-indigo-500/10 dark:to-purple-500/10 blur-3xl pointer-events-none" />
+
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-5 right-5 z-50 flex items-center gap-2 bg-emerald-500 text-slate-950 font-bold px-4 py-2.5 rounded-xl shadow-2xl animate-fade-in border border-emerald-400 text-xs">
+        <div className="fixed bottom-5 right-5 z-50 flex items-center gap-2 bg-emerald-600 text-white dark:bg-emerald-500 dark:text-slate-950 font-bold px-4 py-2.5 rounded-xl shadow-2xl animate-fade-in border border-emerald-400 text-xs">
           <Sparkles className="w-4 h-4 shrink-0" />
           <span>{toastMessage}</span>
         </div>
@@ -476,71 +504,73 @@ export default function App() {
         whatsappChannelUrl={vipConfig.whatsappChannelUrl}
         totalMatchesCount={matches.length}
         accuracyPct={76.5}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6 space-y-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6 space-y-8 relative z-10">
         {/* Spotlight Hero Banner (The Highest Stakes Upcoming Match) */}
         {featuredMatch && (
-          <section className="relative rounded-3xl border border-slate-800 bg-gradient-to-r from-slate-900 via-slate-950 to-slate-900 p-6 sm:p-8 shadow-2xl overflow-hidden">
+          <section className="relative rounded-3xl border border-stone-200/90 bg-gradient-to-br from-amber-50/70 via-white to-stone-50/90 shadow-md dark:border-slate-800 dark:bg-gradient-to-r dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 dark:shadow-2xl p-6 sm:p-8 overflow-hidden transition-all">
             {/* Background glowing gradients */}
-            <div className="absolute -top-24 -left-24 w-72 h-72 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-24 -right-24 w-72 h-72 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" />
+            <div className="absolute -top-24 -left-24 w-72 h-72 rounded-full bg-amber-400/15 dark:bg-emerald-500/10 blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-24 -right-24 w-72 h-72 rounded-full bg-emerald-400/15 dark:bg-indigo-500/10 blur-3xl pointer-events-none" />
 
             <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
               <div className="max-w-2xl">
                 <div className="flex flex-wrap items-center gap-2 text-xs font-mono">
-                  <span className="px-3 py-1 rounded-full bg-amber-500/15 text-amber-400 font-bold border border-amber-500/30 flex items-center gap-1.5">
-                    <Flame className="w-3.5 h-3.5" />
+                  <span className="px-3 py-1 rounded-full bg-amber-500/15 text-amber-900 dark:text-amber-400 font-bold border border-amber-500/30 flex items-center gap-1.5">
+                    <Flame className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                     MARQUEE BLOCKBUSTER OF THE WEEK
                   </span>
-                  <span className="text-slate-400">{featuredMatch.tournament}</span>
-                  <span className="text-slate-600">•</span>
-                  <span className="text-slate-400">{featuredMatch.roundOrStage}</span>
+                  <span className="text-stone-500 dark:text-slate-400">{featuredMatch.tournament}</span>
+                  <span className="text-stone-300 dark:text-slate-600">•</span>
+                  <span className="text-stone-500 dark:text-slate-400">{featuredMatch.roundOrStage}</span>
                   {isMatchVIP(featuredMatch.id) ? (
-                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold flex items-center gap-1">
-                      <ShieldCheck className="w-3.5 h-3.5" />
+                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300 border border-emerald-500/30 font-bold flex items-center gap-1">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                       VIP Unlocked
                     </span>
                   ) : (
-                    <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold flex items-center gap-1">
-                      <Lock className="w-3.5 h-3.5" />
+                    <span className="px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-900 dark:bg-amber-500/20 dark:text-amber-300 border border-amber-500/30 font-bold flex items-center gap-1">
+                      <Lock className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
                       VIP Intel Gated
                     </span>
                   )}
                 </div>
 
-                <h2 className="text-2xl sm:text-4xl font-extrabold text-white mt-3 tracking-tight">
-                  {featuredMatch.homeTeam.name} <span className="text-emerald-400 font-normal">vs</span> {featuredMatch.awayTeam.name}
+                <h2 className="text-2xl sm:text-4xl font-extrabold text-stone-900 dark:text-white mt-3 tracking-tight">
+                  {featuredMatch.homeTeam.name} <span className="text-emerald-600 dark:text-emerald-400 font-normal">vs</span> {featuredMatch.awayTeam.name}
                 </h2>
 
-                <p className="mt-2 text-xs sm:text-sm text-slate-300 leading-relaxed">
+                <p className="mt-2 text-xs sm:text-sm text-stone-600 dark:text-slate-300 leading-relaxed">
                   {featuredMatch.headline}
                 </p>
 
                 {/* Match Details Pills */}
-                <div className="mt-4 flex flex-wrap items-center gap-3 text-xs font-mono text-slate-400">
-                  <div className="flex items-center gap-1.5 bg-slate-900/90 px-3 py-1.5 rounded-lg border border-slate-800">
-                    <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+                <div className="mt-4 flex flex-wrap items-center gap-3 text-xs font-mono text-stone-600 dark:text-slate-400">
+                  <div className="flex items-center gap-1.5 bg-white/90 dark:bg-slate-900/90 px-3 py-1.5 rounded-lg border border-stone-200 dark:border-slate-800 shadow-xs">
+                    <Calendar className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                     <span>{featuredMatch.date} • {featuredMatch.time}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 bg-slate-900/90 px-3 py-1.5 rounded-lg border border-slate-800">
-                    <Users className="w-3.5 h-3.5 text-indigo-400" />
+                  <div className="flex items-center gap-1.5 bg-white/90 dark:bg-slate-900/90 px-3 py-1.5 rounded-lg border border-stone-200 dark:border-slate-800 shadow-xs">
+                    <Users className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                     <span>Key Duel: {featuredMatch.homeTeam.keyPlayers[0]?.name} vs {featuredMatch.awayTeam.keyPlayers[0]?.name}</span>
                   </div>
                 </div>
               </div>
 
               {/* AI Prediction Highlight Box */}
-              <div className="w-full lg:w-80 rounded-2xl bg-slate-950/90 border border-emerald-500/30 p-5 shadow-xl flex flex-col justify-between">
+              <div className="w-full lg:w-80 rounded-2xl bg-white/95 dark:bg-slate-950/90 border border-emerald-500/30 p-5 shadow-lg flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-mono uppercase tracking-wider text-emerald-400 font-bold flex items-center gap-1">
+                    <span className="text-[11px] font-mono uppercase tracking-wider text-emerald-700 dark:text-emerald-400 font-bold flex items-center gap-1">
                       <Brain className="w-3.5 h-3.5" />
                       AI Prediction
                     </span>
                     {featuredMatch.prediction && (
-                      <span className="font-mono text-xs font-bold text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded border border-emerald-500/30">
+                      <span className="font-mono text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-500/15 dark:bg-emerald-500/20 px-2 py-0.5 rounded border border-emerald-500/30">
                         {featuredMatch.prediction.confidence}% Conviction
                       </span>
                     )}
@@ -548,23 +578,23 @@ export default function App() {
 
                   {featuredMatch.prediction ? (
                     <div>
-                      <div className="text-xl font-black text-white">
+                      <div className="text-xl font-black text-stone-900 dark:text-white">
                         {featuredMatch.prediction.winnerName}
                       </div>
-                      <div className="font-mono text-xs text-slate-300 mt-1">
-                        Projected: <strong className="text-emerald-400">{featuredMatch.prediction.projectedScore.home} - {featuredMatch.prediction.projectedScore.away}</strong>
+                      <div className="font-mono text-xs text-stone-600 dark:text-slate-300 mt-1">
+                        Projected: <strong className="text-emerald-700 dark:text-emerald-400">{featuredMatch.prediction.projectedScore.home} - {featuredMatch.prediction.projectedScore.away}</strong>
                       </div>
 
                       {/* Small probability bar */}
                       <div className="mt-3">
-                        <div className="flex justify-between text-[10px] font-mono text-slate-400 mb-1">
+                        <div className="flex justify-between text-[10px] font-mono text-stone-500 dark:text-slate-400 mb-1">
                           <span>{featuredMatch.homeTeam.shortName} {featuredMatch.prediction.probabilities.home}%</span>
                           {featuredMatch.prediction.probabilities.draw !== undefined && featuredMatch.prediction.probabilities.draw > 0 && (
                             <span>Draw {featuredMatch.prediction.probabilities.draw}%</span>
                           )}
                           <span>{featuredMatch.awayTeam.shortName} {featuredMatch.prediction.probabilities.away}%</span>
                         </div>
-                        <div className="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden flex">
+                        <div className="w-full h-1.5 rounded-full bg-stone-200 dark:bg-slate-800 overflow-hidden flex">
                           <div
                             className="bg-emerald-500 h-full"
                             style={{ width: `${featuredMatch.prediction.probabilities.home}%` }}
@@ -583,16 +613,16 @@ export default function App() {
                       </div>
                     </div>
                   ) : (
-                    <p className="text-xs text-slate-400 my-2">
+                    <p className="text-xs text-stone-500 dark:text-slate-400 my-2">
                       Ready for statistical simulation and player duel processing.
                     </p>
                   )}
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-slate-800/80 flex flex-col gap-2">
+                <div className="mt-4 pt-3 border-t border-stone-200 dark:border-slate-800/80 flex flex-col gap-2">
                   <button
                     onClick={() => setActiveMatchForModal(featuredMatch)}
-                    className="w-full py-2.5 px-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition-all cursor-pointer shadow-md text-center flex items-center justify-center gap-1.5"
+                    className="w-full py-2.5 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white dark:bg-emerald-500 dark:hover:bg-emerald-400 dark:text-slate-950 font-bold text-xs transition-all cursor-pointer shadow-sm text-center flex items-center justify-center gap-1.5"
                   >
                     <span>View Match Breakdown</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -604,9 +634,9 @@ export default function App() {
                         setSelectedMatchForPaywall(featuredMatch);
                         setIsPaywallOpen(true);
                       }}
-                      className="w-full py-2 px-3 rounded-lg bg-gradient-to-r from-emerald-500/20 to-teal-500/20 hover:from-emerald-500/30 hover:to-teal-500/30 text-emerald-300 border border-emerald-500/30 font-bold text-[11px] transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                      className="w-full py-2 px-3 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-900 border border-amber-500/30 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30 font-bold text-[11px] transition-all cursor-pointer flex items-center justify-center gap-1.5"
                     >
-                      <Lock className="w-3.5 h-3.5 text-emerald-400" />
+                      <Lock className="w-3.5 h-3.5 text-amber-700 dark:text-emerald-400" />
                       <span>Unlock VIP Intel & WhatsApp</span>
                     </button>
                   )}
@@ -617,10 +647,10 @@ export default function App() {
         )}
 
         {/* Filter, Search & Controls Bar */}
-        <section className="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 space-y-3">
+        <section className="bg-white/95 dark:bg-slate-900/60 p-4 rounded-2xl border border-stone-200/90 dark:border-slate-800 space-y-3 shadow-xs">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="relative w-full sm:w-96">
-              <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-stone-400 dark:text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={searchQuery}
@@ -630,14 +660,14 @@ export default function App() {
                     handleLiveSearchOrGenerate(searchQuery);
                   }
                 }}
-                placeholder="Search any team (Arsenal, Inter...), league (Serie A...), or player (Haaland)..."
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-9 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                placeholder="Search any team (Arsenal, Inter...), league (Serie A...), or player..."
+                className="w-full bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 rounded-xl pl-9 pr-9 py-2.5 text-xs text-stone-900 dark:text-slate-100 placeholder-stone-400 dark:placeholder-slate-500 focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:border-emerald-500"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 p-0.5 rounded cursor-pointer"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 dark:text-slate-500 dark:hover:text-slate-300 p-0.5 rounded cursor-pointer"
                   title="Clear search"
                 >
                   <X className="w-3.5 h-3.5" />
@@ -646,16 +676,16 @@ export default function App() {
             </div>
 
             <div className="flex items-center gap-2 w-full sm:w-auto justify-end text-xs font-mono">
-              <span className="text-slate-400 text-[11px] flex items-center gap-1 hidden sm:flex">
-                <Filter className="w-3.5 h-3.5 text-slate-500" />
+              <span className="text-stone-500 dark:text-slate-400 text-[11px] flex items-center gap-1 hidden sm:flex">
+                <Filter className="w-3.5 h-3.5 text-stone-400 dark:text-slate-500" />
                 Sort:
               </span>
               <button
                 onClick={() => setSortBy('importance')}
                 className={`px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${
                   sortBy === 'importance'
-                    ? 'bg-slate-800 text-emerald-400 border-slate-700 font-bold'
-                    : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'
+                    ? 'bg-stone-900 text-white border-stone-900 dark:bg-slate-800 dark:text-emerald-400 dark:border-slate-700 font-bold'
+                    : 'bg-stone-100 text-stone-600 border-stone-200 hover:text-stone-900 dark:bg-slate-950 dark:text-slate-400 dark:border-slate-800 hover:dark:text-slate-200'
                 }`}
               >
                 🔥 Importance Stakes
@@ -664,8 +694,8 @@ export default function App() {
                 onClick={() => setSortBy('date')}
                 className={`px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${
                   sortBy === 'date'
-                    ? 'bg-slate-800 text-emerald-400 border-slate-700 font-bold'
-                    : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'
+                    ? 'bg-stone-900 text-white border-stone-900 dark:bg-slate-800 dark:text-emerald-400 dark:border-slate-700 font-bold'
+                    : 'bg-stone-100 text-stone-600 border-stone-200 hover:text-stone-900 dark:bg-slate-950 dark:text-slate-400 dark:border-slate-800 hover:dark:text-slate-200'
                 }`}
               >
                 📅 Date
@@ -674,8 +704,8 @@ export default function App() {
           </div>
 
           {/* Quick League Filter Chips */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none pt-1 border-t border-slate-800/60">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 shrink-0 mr-1">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none pt-1 border-t border-stone-200/70 dark:border-slate-800/60">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-stone-500 dark:text-slate-500 shrink-0 mr-1">
               Leagues:
             </span>
             {[
@@ -699,8 +729,8 @@ export default function App() {
                   }}
                   className={`px-2.5 py-1 rounded-lg text-[11px] font-medium whitespace-nowrap transition-all cursor-pointer border ${
                     isActive
-                      ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold shadow-sm'
-                      : 'bg-slate-950/80 text-slate-400 border-slate-800 hover:text-slate-200 hover:border-slate-700'
+                      ? 'bg-emerald-600 text-white border-emerald-600 font-bold shadow-xs dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/40'
+                      : 'bg-stone-100/90 text-stone-600 border-stone-200 hover:text-stone-900 hover:bg-stone-200/80 dark:bg-slate-950/80 dark:text-slate-400 dark:border-slate-800 dark:hover:text-slate-200 dark:hover:border-slate-700'
                   }`}
                 >
                   {league.label}
@@ -714,8 +744,8 @@ export default function App() {
         <section className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
             <div className="flex items-center gap-2">
-              <h3 className="text-base font-bold text-white">Upcoming Blockbuster Fixtures</h3>
-              <span className="font-mono text-xs text-slate-400 bg-slate-900 px-2 py-0.5 rounded-full border border-slate-800">
+              <h3 className="text-base font-bold text-stone-900 dark:text-white">Upcoming Blockbuster Fixtures</h3>
+              <span className="font-mono text-xs text-stone-600 dark:text-slate-400 bg-stone-100 dark:bg-slate-900 px-2.5 py-0.5 rounded-full border border-stone-200 dark:border-slate-800">
                 {filteredMatches.length} of {matches.length} Loaded
               </span>
             </div>
@@ -723,7 +753,7 @@ export default function App() {
             <div className="flex items-center gap-2.5">
               <button
                 onClick={handleSyncAll}
-                className="text-xs font-mono px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 flex items-center gap-1.5 cursor-pointer transition-all shadow-sm"
+                className="text-xs font-mono px-3 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-800 dark:text-emerald-400 flex items-center gap-1.5 cursor-pointer transition-all shadow-xs"
                 title="Sync and load full multi-league match slate"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
@@ -732,7 +762,7 @@ export default function App() {
 
               <button
                 onClick={() => setIsFetchModalOpen(true)}
-                className="text-xs font-mono text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer"
+                className="text-xs font-mono text-emerald-700 hover:text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer"
               >
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>Fetch More Fixtures via AI</span>
@@ -745,7 +775,7 @@ export default function App() {
               {[1, 2, 3, 4].map((i) => (
                 <div
                   key={i}
-                  className="h-72 rounded-2xl border border-slate-800 bg-slate-900/40 animate-pulse"
+                  className="h-72 rounded-2xl border border-stone-200 dark:border-slate-800 bg-white/60 dark:bg-slate-900/40 animate-pulse"
                 />
               ))}
             </div>
@@ -767,15 +797,15 @@ export default function App() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-16 bg-slate-900/40 rounded-2xl border border-slate-800 p-6 space-y-4">
-              <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mx-auto text-emerald-400">
+            <div className="text-center py-16 bg-white/90 dark:bg-slate-900/40 rounded-2xl border border-stone-200 dark:border-slate-800 p-6 space-y-4 shadow-xs">
+              <div className="w-12 h-12 rounded-full bg-stone-100 dark:bg-slate-800 flex items-center justify-center mx-auto text-emerald-600 dark:text-emerald-400">
                 <Compass className="w-6 h-6" />
               </div>
               <div>
-                <h4 className="text-base font-bold text-slate-100">
+                <h4 className="text-base font-bold text-stone-900 dark:text-slate-100">
                   {searchQuery ? `No fixtures found matching "${searchQuery}"` : 'No fixtures match current filter'}
                 </h4>
-                <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
+                <p className="text-xs text-stone-500 dark:text-slate-400 mt-1 max-w-md mx-auto">
                   {searchQuery
                     ? `Click below to search live sports intelligence or synthesize realistic match telemetry for "${searchQuery}".`
                     : 'Clear filters or load the complete multi-league fixture slate.'}
@@ -786,7 +816,7 @@ export default function App() {
                 {searchQuery && (
                   <button
                     onClick={() => handleLiveSearchOrGenerate(searchQuery)}
-                    className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-xl shadow-lg shadow-emerald-500/20 transition-all cursor-pointer flex items-center gap-1.5"
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-500/20 transition-all cursor-pointer flex items-center gap-1.5"
                   >
                     <Sparkles className="w-3.5 h-3.5" />
                     <span>Fetch & Generate "{searchQuery}" Live</span>
@@ -794,7 +824,7 @@ export default function App() {
                 )}
                 <button
                   onClick={handleSyncAll}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl border border-slate-700 transition-all cursor-pointer flex items-center gap-1.5"
+                  className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs rounded-xl border border-stone-800 transition-all cursor-pointer flex items-center gap-1.5"
                 >
                   <RefreshCw className="w-3.5 h-3.5 text-emerald-400" />
                   <span>Load All 20+ League Matches</span>
@@ -805,7 +835,7 @@ export default function App() {
                     setSelectedLeague('all');
                     setSelectedSport('all');
                   }}
-                  className="px-3 py-2 text-xs font-mono text-slate-400 hover:text-white underline cursor-pointer"
+                  className="px-3 py-2 text-xs font-mono text-stone-500 hover:text-stone-800 dark:text-slate-400 hover:dark:text-white underline cursor-pointer"
                 >
                   Reset All Filters
                 </button>
@@ -815,38 +845,38 @@ export default function App() {
         </section>
 
         {/* Bottom Feature Explainer: How the Historical AI Engine Works */}
-        <section className="rounded-2xl border border-slate-800 bg-slate-900/40 p-6 space-y-4">
+        <section className="rounded-2xl border border-stone-200/90 bg-white/90 dark:border-slate-800 dark:bg-slate-900/40 p-6 space-y-4 shadow-xs">
           <div className="flex items-center gap-2">
-            <Brain className="w-5 h-5 text-emerald-400" />
-            <h4 className="text-sm font-bold text-white uppercase tracking-wider font-mono">
+            <Brain className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+            <h4 className="text-sm font-bold text-stone-900 dark:text-white uppercase tracking-wider font-mono">
               The ApexMatch Quantitative Architecture
             </h4>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs text-slate-300">
-            <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800">
-              <span className="font-mono text-emerald-400 font-bold block mb-1">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs text-stone-600 dark:text-slate-300">
+            <div className="p-4 rounded-xl bg-stone-50/90 dark:bg-slate-950/80 border border-stone-200 dark:border-slate-800">
+              <span className="font-mono text-emerald-700 dark:text-emerald-400 font-bold block mb-1">
                 1. Player Duel Micro-Modelling
               </span>
-              <p className="text-slate-400 leading-relaxed">
+              <p className="text-stone-500 dark:text-slate-400 leading-relaxed">
                 Rather than treating teams as monolithic entities, our model compares 1v1 positional matchups (e.g. Inverted Winger vs Recovery Fullback) to identify structural leaks and transition xG.
               </p>
             </div>
 
-            <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800">
-              <span className="font-mono text-indigo-400 font-bold block mb-1">
+            <div className="p-4 rounded-xl bg-stone-50/90 dark:bg-slate-950/80 border border-stone-200 dark:border-slate-800">
+              <span className="font-mono text-indigo-700 dark:text-indigo-400 font-bold block mb-1">
                 2. Multi-Season Form & Clutch Index
               </span>
-              <p className="text-slate-400 leading-relaxed">
+              <p className="text-stone-500 dark:text-slate-400 leading-relaxed">
                 Historical performance in high-leverage minutes (&gt;80th minute, 5th set tiebreaks, 4th quarter clutch possessions) weighs 3.2x heavier than blowouts against bottom-table opponents.
               </p>
             </div>
 
-            <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800">
-              <span className="font-mono text-amber-400 font-bold block mb-1">
+            <div className="p-4 rounded-xl bg-stone-50/90 dark:bg-slate-950/80 border border-stone-200 dark:border-slate-800">
+              <span className="font-mono text-amber-700 dark:text-amber-400 font-bold block mb-1">
                 3. 1,000 Monte Carlo Simulations
               </span>
-              <p className="text-slate-400 leading-relaxed">
+              <p className="text-stone-500 dark:text-slate-400 leading-relaxed">
                 Each prediction runs through 1,000 randomized stochastic event cycles to account for referee variance, set-piece randomness, and shot deflection probability distributions.
               </p>
             </div>
@@ -855,20 +885,20 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-800/80 bg-slate-950 py-6 px-4 mt-12 text-xs text-slate-500 font-mono">
+      <footer className="border-t border-stone-200 bg-stone-100/90 dark:border-slate-800/80 dark:bg-slate-950 py-6 px-4 mt-12 text-xs text-stone-500 dark:text-slate-500 font-mono transition-colors">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
           <div>
-            <span className="text-slate-300 font-bold">ApexMatch AI</span> • Big Match Predictor & Historical Player Performance Engine
+            <span className="text-stone-800 dark:text-slate-300 font-bold">ApexMatch AI</span> • Big Match Predictor & Historical Player Performance Engine
           </div>
           <div className="flex flex-wrap items-center gap-2 sm:gap-3 justify-center sm:justify-end">
             <span>Powered by Gemini 3.8 Flash • Real-Time Sports Intelligence & Quantitative Analytics</span>
-            <span className="text-slate-700 hidden sm:inline">•</span>
+            <span className="text-stone-300 dark:text-slate-700 hidden sm:inline">•</span>
             <button
               onClick={() => setIsAdminConfigOpen(true)}
-              className="text-slate-500 hover:text-emerald-400 text-[11px] font-mono flex items-center gap-1 cursor-pointer transition-colors"
+              className="text-stone-500 hover:text-emerald-600 dark:text-slate-500 dark:hover:text-emerald-400 text-[11px] font-mono flex items-center gap-1 cursor-pointer transition-colors"
               title="App Owner Access (Passcode Protected)"
             >
-              <Lock className="w-3 h-3 text-slate-500" />
+              <Lock className="w-3 h-3 text-stone-400 dark:text-slate-500" />
               <span>{isAdminAuthed ? '👑 Owner Center Active' : 'Owner Portal'}</span>
             </button>
           </div>
