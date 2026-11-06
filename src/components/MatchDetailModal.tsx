@@ -191,6 +191,7 @@ export const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
           >
             <BarChart3 className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
             <span>1,000 Monte Carlo Sim</span>
+            {!isVIP && <Lock className="w-3 h-3 text-amber-700 dark:text-amber-400 shrink-0" />}
           </button>
 
           <button
@@ -203,6 +204,7 @@ export const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
           >
             <SlidersHorizontal className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
             <span>What-If Lineup Simulator</span>
+            {!isVIP && <Lock className="w-3 h-3 text-amber-700 dark:text-amber-400 shrink-0" />}
           </button>
         </div>
 
@@ -226,11 +228,11 @@ export const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
                         </div>
                         <div>
                           <span className="font-bold text-stone-900 dark:text-white text-xs flex items-center gap-1.5">
-                            {isOwner ? '👑 Owner Access Active • Full Match Intelligence Unlocked' : 'VIP Detailed Dossier Active'}
+                            {isOwner ? '👑 Master Admin Active • Free Privilege Enabled' : 'VIP Detailed Dossier Active'}
                           </span>
                           <span className="text-[11px] text-stone-600 dark:text-slate-400">
                             {isOwner
-                              ? 'Logged in with owner PIN: all deep tactical stats, player duel edges, and 1,000 Monte Carlo runs unblurred'
+                              ? 'Logged in as Admin: all deep tactical stats, player duel edges, and 1,000 Monte Carlo runs unlocked with zero paywall'
                               : 'Full quantitative proofs & 1,000 Monte Carlo sims unlocked'}
                           </span>
                         </div>
@@ -334,172 +336,188 @@ export const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
                     </div>
                   </div>
 
-                  {/* VIP PAYWALL GATE (Shown if user has not unlocked this match) */}
-                  {!isVIP && (
-                    <div className="relative rounded-2xl border-2 border-emerald-600/40 dark:border-emerald-500/50 bg-[#E5DFD5] dark:bg-gradient-to-br dark:from-emerald-950/80 dark:via-slate-900 dark:to-indigo-950/70 p-6 sm:p-8 text-center shadow-md overflow-hidden my-4">
-                      <div className="w-14 h-14 rounded-2xl bg-emerald-600/15 border border-emerald-600/30 text-emerald-800 dark:bg-emerald-500/20 dark:border-emerald-500/40 dark:text-emerald-400 mx-auto flex items-center justify-center mb-3">
+                  {/* If VIP (or Admin): render full deep forecast details. If NOT VIP: render the VIP lock gate card */}
+                  {isVIP ? (
+                    <div className="space-y-6">
+                      {/* Deep Tactical & Historical Rationale */}
+                      <div className="rounded-xl border border-stone-300 dark:border-slate-800 bg-[#EAE5DD] dark:bg-slate-900/60 p-5 space-y-3">
+                        <div className="flex items-center gap-2 text-sm font-bold text-stone-900 dark:text-white">
+                          <Brain className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
+                          <span>Quantitative Match Performance Analysis</span>
+                        </div>
+                        <p className="text-xs sm:text-sm text-stone-800 dark:text-slate-300 leading-relaxed font-normal">
+                          {prediction.rationale}
+                        </p>
+                      </div>
+
+                      {/* Key Player Duel Card */}
+                      {prediction.keyPlayerDuel && (
+                        <div className="rounded-xl border border-indigo-300/80 dark:border-indigo-500/30 bg-[#E6E8EF] dark:bg-indigo-950/25 p-5">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <Users className="w-4 h-4 text-indigo-700 dark:text-indigo-400" />
+                              <h4 className="text-sm font-bold text-indigo-950 dark:text-indigo-200">
+                                Decisive Player Matchup Duel
+                              </h4>
+                            </div>
+                            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-indigo-100 text-indigo-900 border border-indigo-300 dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/30">
+                              Advantage: {prediction.keyPlayerDuel.advantage}
+                            </span>
+                          </div>
+
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-2 border-y border-indigo-200 dark:border-indigo-900/40">
+                            <div className="font-semibold text-stone-900 dark:text-white">
+                              {prediction.keyPlayerDuel.playerHome} <span className="text-xs text-stone-600 dark:text-slate-400">({homeTeam.shortName})</span>
+                            </div>
+                            <span className="font-mono text-xs text-indigo-900 dark:text-indigo-400 font-bold px-2 py-1 rounded bg-indigo-100 dark:bg-indigo-950/60 border border-indigo-300 dark:border-indigo-800/60">
+                              VS DUEL
+                            </span>
+                            <div className="font-semibold text-stone-900 dark:text-white">
+                              {prediction.keyPlayerDuel.playerAway} <span className="text-xs text-stone-600 dark:text-slate-400">({awayTeam.shortName})</span>
+                            </div>
+                          </div>
+
+                          <p className="mt-3 text-xs text-stone-800 dark:text-slate-300 leading-relaxed">
+                            {prediction.keyPlayerDuel.duelSummary}
+                          </p>
+                          <div className="mt-2 text-xs text-indigo-900 dark:text-indigo-300 font-semibold">
+                            💡 {prediction.keyPlayerDuel.advantageReason}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Historical Performance Proofs Grid */}
+                      {(prediction.historicalPerformanceBreakdown?.length ?? 0) > 0 && (
+                        <div>
+                          <h4 className="text-xs font-mono uppercase tracking-wider text-stone-700 dark:text-slate-400 font-bold mb-3 flex items-center gap-1.5">
+                            <TrendingUp className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
+                            <span>Historical Performance Evidence</span>
+                          </h4>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            {prediction.historicalPerformanceBreakdown.map((item, idx) => (
+                              <div
+                                key={idx}
+                                className="rounded-xl border border-stone-300 dark:border-slate-800 bg-[#EAE5DD] dark:bg-slate-900/50 p-4 flex flex-col justify-between"
+                              >
+                                <div>
+                                  <div className="flex items-center justify-between gap-2 mb-2">
+                                    <span className="text-xs font-bold text-stone-900 dark:text-slate-200 line-clamp-1">
+                                      {item.title}
+                                    </span>
+                                    <span
+                                      className={`text-[10px] font-mono px-1.5 py-0.5 rounded uppercase font-bold ${
+                                        item.impact === 'critical'
+                                          ? 'bg-rose-100 text-rose-800 border border-rose-300 dark:bg-rose-500/20 dark:text-rose-300 dark:border-rose-500/30'
+                                          : 'bg-emerald-100 text-emerald-800 border border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30'
+                                      }`}
+                                    >
+                                      {item.impact}
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-stone-700 dark:text-slate-300 leading-relaxed">
+                                    {item.statProof}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Tactical Keys & X-Factor Player */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Tactical Keys */}
+                        <div className="rounded-xl border border-stone-300 dark:border-slate-800 bg-[#EAE5DD] dark:bg-slate-900/50 p-4">
+                          <h4 className="text-xs font-mono uppercase tracking-wider text-stone-700 dark:text-slate-400 font-bold mb-3 flex items-center gap-1.5">
+                            <Compass className="w-4 h-4 text-teal-700 dark:text-cyan-400" />
+                            <span>Tactical Keys to Victory</span>
+                          </h4>
+                          <ul className="space-y-2 text-xs text-stone-800 dark:text-slate-300">
+                            {(prediction.tacticalKeys || []).map((key, kIdx) => (
+                              <li key={kIdx} className="flex items-start gap-2">
+                                <span className="text-emerald-700 dark:text-emerald-400 font-bold">•</span>
+                                <span>{key}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        {/* X-Factor Player */}
+                        {prediction.xFactorPlayer && (
+                          <div className="rounded-xl border border-amber-300/80 dark:border-amber-500/30 bg-[#EFE9DD] dark:bg-amber-950/20 p-4 flex flex-col justify-between">
+                            <div>
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-xs font-mono uppercase tracking-wider text-amber-900 dark:text-amber-400 font-bold flex items-center gap-1.5">
+                                  <Flame className="w-4 h-4 text-amber-700 dark:text-amber-400" />
+                                  <span>Match X-Factor Player</span>
+                                </span>
+                                <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-900 dark:bg-amber-500/20 dark:text-amber-300 text-[10px] font-mono font-bold border border-amber-300 dark:border-amber-500/30">
+                                  {prediction.xFactorPlayer.team}
+                                </span>
+                              </div>
+                              <div className="text-base font-extrabold text-stone-900 dark:text-white">
+                                {prediction.xFactorPlayer.name}
+                              </div>
+                              <p className="mt-1.5 text-xs text-stone-800 dark:text-slate-300 leading-relaxed">
+                                {prediction.xFactorPlayer.reason}
+                              </p>
+                            </div>
+                            <div className="mt-3 pt-2 border-t border-amber-200 dark:border-amber-500/20 text-xs font-mono text-amber-900 dark:text-amber-300 font-semibold">
+                              ⭐ {prediction.xFactorPlayer.statHighlight}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="rounded-2xl border-2 border-emerald-600/40 dark:border-emerald-500/50 bg-[#E5DFD5] dark:bg-gradient-to-br dark:from-emerald-950/80 dark:via-slate-900 dark:to-indigo-950/70 p-6 sm:p-8 text-center shadow-md overflow-hidden my-4 space-y-4">
+                      <div className="w-14 h-14 rounded-2xl bg-emerald-600/15 border border-emerald-600/30 text-emerald-800 dark:bg-emerald-500/20 dark:border-emerald-500/40 dark:text-emerald-400 mx-auto flex items-center justify-center">
                         <Lock className="w-7 h-7" />
                       </div>
-                      <span className="px-3 py-1 rounded-full bg-emerald-600/10 text-emerald-900 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-600/20 dark:border-emerald-500/30 text-[10px] font-mono font-bold uppercase tracking-wider">
-                        VIP Detailed Dossier Gated
-                      </span>
-                      <h3 className="text-xl sm:text-2xl font-black text-stone-900 dark:text-white mt-2">
-                        Unlock Deep Player Duel Exploits & WhatsApp Channel
-                      </h3>
-                      <p className="text-xs sm:text-sm text-stone-700 dark:text-slate-300 max-w-lg mx-auto mt-2 leading-relaxed">
-                        Pay securely via Paystack to unlock the full quantitative tactical rationale, player duel matchup edges, and 1,000 Monte Carlo stochastic runs—plus get <strong>instant auto-redirect to our VIP WhatsApp Channel</strong> where late-breaking team lineup news and daily picks are published!
-                      </p>
-                      <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+                      <div>
+                        <span className="px-3 py-1 rounded-full bg-emerald-600/10 text-emerald-900 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-600/20 dark:border-emerald-500/30 text-[10px] font-mono font-bold uppercase tracking-wider">
+                          Deep Tactical Intelligence Gated
+                        </span>
+                        <h3 className="text-xl sm:text-2xl font-black text-stone-900 dark:text-white mt-2">
+                          Unlock Deep Match Forecast Details & VIP WhatsApp Channel
+                        </h3>
+                        <p className="text-xs sm:text-sm text-stone-700 dark:text-slate-300 max-w-xl mx-auto mt-2 leading-relaxed">
+                          Deep forecast details—including the full quantitative match analysis, 1v1 positional duel advantages, multi-season historical proofs, tactical victory keys, and 1,000 Monte Carlo runs—are hidden. Complete payment via Paystack to unlock immediately and get <strong>automatically redirected to our exclusive VIP WhatsApp Channel</strong>!
+                        </p>
+                      </div>
+
+                      {/* Features list */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-w-lg mx-auto text-left text-xs font-semibold text-stone-800 dark:text-slate-200 py-1">
+                        <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[#DFD9CE] dark:bg-slate-950/60 border border-stone-300 dark:border-slate-800">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-700 dark:text-emerald-400 shrink-0" />
+                          <span>Quantitative Match &amp; xG Analysis</span>
+                        </div>
+                        <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[#DFD9CE] dark:bg-slate-950/60 border border-stone-300 dark:border-slate-800">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-700 dark:text-emerald-400 shrink-0" />
+                          <span>1v1 Positional Duel Advantage Insights</span>
+                        </div>
+                        <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[#DFD9CE] dark:bg-slate-950/60 border border-stone-300 dark:border-slate-800">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-700 dark:text-emerald-400 shrink-0" />
+                          <span>Multi-Season Historical Evidence Proofs</span>
+                        </div>
+                        <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[#DFD9CE] dark:bg-slate-950/60 border border-stone-300 dark:border-slate-800">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-700 dark:text-emerald-400 shrink-0" />
+                          <span>Auto-Redirect to VIP WhatsApp Channel</span>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
                         <button
                           onClick={onOpenPaywall}
                           className="py-3 px-6 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white dark:bg-gradient-to-r dark:from-emerald-500 dark:to-teal-400 dark:text-slate-950 font-black text-xs sm:text-sm shadow-md transition-all flex items-center gap-2 cursor-pointer active:scale-95"
                         >
                           <Unlock className="w-4 h-4" />
-                          <span>Pay via Paystack & Join WhatsApp Channel</span>
+                          <span>Pay with Paystack &amp; Join VIP WhatsApp Channel</span>
                           <ArrowRight className="w-4 h-4" />
                         </button>
                       </div>
-
-                      {/* Blurred Teaser preview behind */}
-                      <div className="mt-6 pt-5 border-t border-stone-300 dark:border-slate-800/80 filter blur-[3px] select-none pointer-events-none opacity-30 text-left space-y-2">
-                        <div className="font-bold text-stone-900 dark:text-white text-xs">Preview: In-depth Positional Duel Vulnerabilities</div>
-                        <p className="text-[11px] text-stone-700 dark:text-slate-400 line-clamp-2">{prediction.rationale}</p>
-                      </div>
                     </div>
                   )}
-
-                  {/* Deep Sections Container: Rendered normally if VIP, or blurred teaser if not VIP */}
-                  <div className={!isVIP ? 'filter blur-[3px] opacity-35 pointer-events-none select-none space-y-6' : 'space-y-6'}>
-                    {/* Deep Tactical & Historical Rationale */}
-                    <div className="rounded-xl border border-stone-300 dark:border-slate-800 bg-[#EAE5DD] dark:bg-slate-900/60 p-5 space-y-3">
-                      <div className="flex items-center gap-2 text-sm font-bold text-stone-900 dark:text-white">
-                        <Brain className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
-                        <span>Quantitative Match Performance Analysis</span>
-                      </div>
-                      <p className="text-xs sm:text-sm text-stone-800 dark:text-slate-300 leading-relaxed font-normal">
-                        {prediction.rationale}
-                      </p>
-                    </div>
-
-                    {/* Key Player Duel Card */}
-                    {prediction.keyPlayerDuel && (
-                      <div className="rounded-xl border border-indigo-300/80 dark:border-indigo-500/30 bg-[#E6E8EF] dark:bg-indigo-950/25 p-5">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-2">
-                            <Users className="w-4 h-4 text-indigo-700 dark:text-indigo-400" />
-                            <h4 className="text-sm font-bold text-indigo-950 dark:text-indigo-200">
-                              Decisive Player Matchup Duel
-                            </h4>
-                          </div>
-                          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-indigo-100 text-indigo-900 border border-indigo-300 dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/30">
-                            Advantage: {prediction.keyPlayerDuel.advantage}
-                          </span>
-                        </div>
-
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-2 border-y border-indigo-200 dark:border-indigo-900/40">
-                          <div className="font-semibold text-stone-900 dark:text-white">
-                            {prediction.keyPlayerDuel.playerHome} <span className="text-xs text-stone-600 dark:text-slate-400">({homeTeam.shortName})</span>
-                          </div>
-                          <span className="font-mono text-xs text-indigo-900 dark:text-indigo-400 font-bold px-2 py-1 rounded bg-indigo-100 dark:bg-indigo-950/60 border border-indigo-300 dark:border-indigo-800/60">
-                            VS DUEL
-                          </span>
-                          <div className="font-semibold text-stone-900 dark:text-white">
-                            {prediction.keyPlayerDuel.playerAway} <span className="text-xs text-stone-600 dark:text-slate-400">({awayTeam.shortName})</span>
-                          </div>
-                        </div>
-
-                        <p className="mt-3 text-xs text-stone-800 dark:text-slate-300 leading-relaxed">
-                          {prediction.keyPlayerDuel.duelSummary}
-                        </p>
-                        <div className="mt-2 text-xs text-indigo-900 dark:text-indigo-300 font-semibold">
-                          💡 {prediction.keyPlayerDuel.advantageReason}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Historical Performance Proofs Grid */}
-                    {(prediction.historicalPerformanceBreakdown?.length ?? 0) > 0 && (
-                      <div>
-                        <h4 className="text-xs font-mono uppercase tracking-wider text-stone-700 dark:text-slate-400 font-bold mb-3 flex items-center gap-1.5">
-                          <TrendingUp className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
-                          <span>Historical Performance Evidence</span>
-                        </h4>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                          {prediction.historicalPerformanceBreakdown.map((item, idx) => (
-                            <div
-                              key={idx}
-                              className="rounded-xl border border-stone-300 dark:border-slate-800 bg-[#EAE5DD] dark:bg-slate-900/50 p-4 flex flex-col justify-between"
-                            >
-                              <div>
-                                <div className="flex items-center justify-between gap-2 mb-2">
-                                  <span className="text-xs font-bold text-stone-900 dark:text-slate-200 line-clamp-1">
-                                    {item.title}
-                                  </span>
-                                  <span
-                                    className={`text-[10px] font-mono px-1.5 py-0.5 rounded uppercase font-bold ${
-                                      item.impact === 'critical'
-                                        ? 'bg-rose-100 text-rose-800 border border-rose-300 dark:bg-rose-500/20 dark:text-rose-300 dark:border-rose-500/30'
-                                        : 'bg-emerald-100 text-emerald-800 border border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30'
-                                    }`}
-                                  >
-                                    {item.impact}
-                                  </span>
-                                </div>
-                                <p className="text-xs text-stone-700 dark:text-slate-300 leading-relaxed">
-                                  {item.statProof}
-                                </p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Tactical Keys & X-Factor Player */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Tactical Keys */}
-                      <div className="rounded-xl border border-stone-300 dark:border-slate-800 bg-[#EAE5DD] dark:bg-slate-900/50 p-4">
-                        <h4 className="text-xs font-mono uppercase tracking-wider text-stone-700 dark:text-slate-400 font-bold mb-3 flex items-center gap-1.5">
-                          <Compass className="w-4 h-4 text-teal-700 dark:text-cyan-400" />
-                          <span>Tactical Keys to Victory</span>
-                        </h4>
-                        <ul className="space-y-2 text-xs text-stone-800 dark:text-slate-300">
-                          {(prediction.tacticalKeys || []).map((key, kIdx) => (
-                            <li key={kIdx} className="flex items-start gap-2">
-                              <span className="text-emerald-700 dark:text-emerald-400 font-bold">•</span>
-                              <span>{key}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-
-                      {/* X-Factor Player */}
-                      {prediction.xFactorPlayer && (
-                        <div className="rounded-xl border border-amber-300/80 dark:border-amber-500/30 bg-[#EFE9DD] dark:bg-amber-950/20 p-4 flex flex-col justify-between">
-                          <div>
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-xs font-mono uppercase tracking-wider text-amber-900 dark:text-amber-400 font-bold flex items-center gap-1.5">
-                                <Flame className="w-4 h-4 text-amber-700 dark:text-amber-400" />
-                                <span>Match X-Factor Player</span>
-                              </span>
-                              <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-900 dark:bg-amber-500/20 dark:text-amber-300 text-[10px] font-mono font-bold border border-amber-300 dark:border-amber-500/30">
-                                {prediction.xFactorPlayer.team}
-                              </span>
-                            </div>
-                            <div className="text-base font-extrabold text-stone-900 dark:text-white">
-                              {prediction.xFactorPlayer.name}
-                            </div>
-                            <p className="mt-1.5 text-xs text-stone-800 dark:text-slate-300 leading-relaxed">
-                              {prediction.xFactorPlayer.reason}
-                            </p>
-                          </div>
-                          <div className="mt-3 pt-2 border-t border-amber-200 dark:border-amber-500/20 text-xs font-mono text-amber-900 dark:text-amber-300 font-semibold">
-                            ⭐ {prediction.xFactorPlayer.statHighlight}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
                 </>
               ) : (
                 <div className="text-center py-12 bg-[#EAE5DD] dark:bg-slate-900/40 rounded-xl border border-stone-300 dark:border-slate-800">
@@ -641,102 +659,131 @@ export const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
 
                 {/* Selected Player Detail & Radar (Right) */}
                 <div className="lg:col-span-7 rounded-xl border border-stone-300 dark:border-slate-800 bg-[#EAE5DD] dark:bg-slate-900/60 p-5 space-y-5">
-                  <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-stone-300 dark:border-slate-800">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-lg font-bold text-stone-900 dark:text-white">{selectedPlayer.name}</h3>
-                        <span className="text-xs px-2 py-0.5 rounded bg-[#DFD9CE] dark:bg-slate-800 font-mono text-stone-700 dark:text-slate-300">
-                          {selectedPlayer.position}
+                  {!isVIP ? (
+                    <div className="py-8 px-4 text-center space-y-4">
+                      <div className="w-14 h-14 rounded-2xl bg-emerald-600/15 border border-emerald-600/30 text-emerald-800 dark:bg-emerald-500/20 dark:border-emerald-500/40 dark:text-emerald-400 mx-auto flex items-center justify-center">
+                        <Lock className="w-7 h-7" />
+                      </div>
+                      <div>
+                        <span className="px-2.5 py-0.5 rounded-full bg-emerald-600/10 text-emerald-900 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-600/20 text-[10px] font-mono font-bold uppercase tracking-wider">
+                          Scouting Radar Gated
                         </span>
+                        <h4 className="text-lg font-black text-stone-900 dark:text-white mt-2">
+                          Unlock Player Radar &amp; Scouting Intelligence
+                        </h4>
+                        <p className="text-xs text-stone-700 dark:text-slate-300 max-w-md mx-auto mt-1 leading-relaxed">
+                          6-axis player athletic radar charts, head-to-head performance metrics, and historical scouting logs are protected. Pay via Paystack to unlock immediately and get redirected to our VIP WhatsApp Channel!
+                        </p>
                       </div>
-                      <p className="text-xs text-stone-600 dark:text-slate-400 mt-0.5">
-                        Historical Performance Index & Scouting Profile
-                      </p>
-                    </div>
 
-                    <div className="text-right">
-                      <span className="text-[10px] font-mono text-stone-600 dark:text-slate-400 block uppercase font-semibold">
-                        AI Overall Rating
-                      </span>
-                      <span className="text-2xl font-black font-mono text-emerald-800 dark:text-emerald-400">
-                        {selectedPlayer.rating} <span className="text-sm text-stone-500 dark:text-slate-500">/ 10</span>
-                      </span>
+                      <button
+                        onClick={onOpenPaywall}
+                        className="py-2.5 px-5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white dark:bg-gradient-to-r dark:from-emerald-500 dark:to-teal-400 dark:text-slate-950 font-black text-xs shadow-md transition-all flex items-center gap-2 mx-auto cursor-pointer"
+                      >
+                        <Unlock className="w-4 h-4" />
+                        <span>Pay with Paystack &amp; Join VIP WhatsApp Channel</span>
+                      </button>
                     </div>
-                  </div>
-
-                  {/* Radar Chart + Attributes */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-                    <div className="flex justify-center p-2 bg-[#DFD9CE] dark:bg-slate-950/60 rounded-xl border border-stone-300 dark:border-slate-800/80">
-                      <PlayerRadarChart
-                        stats={selectedPlayer.radarStats || DEFAULT_PLAYER.radarStats}
-                        playerName={selectedPlayer.name}
-                        size={210}
-                      />
-                    </div>
-
-                    {/* Key Quantitative Metrics Grid */}
-                    <div className="space-y-2">
-                      <span className="text-xs font-mono uppercase tracking-wider text-stone-700 dark:text-slate-400 block font-bold mb-2">
-                        Season & Head-to-Head Metrics
-                      </span>
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        {Object.entries(selectedPlayer.keyMetrics || {}).map(([statName, val], idx) => (
-                          <div
-                            key={idx}
-                            className="p-2.5 rounded-lg bg-[#DFD9CE] border border-stone-300/80 dark:bg-slate-950/80 dark:border-slate-800 flex flex-col"
-                          >
-                            <span className="text-[10px] text-stone-600 dark:text-slate-400 truncate">{statName}</span>
-                            <span className="font-mono font-bold text-stone-900 dark:text-slate-100 text-sm mt-0.5 truncate">
-                              {String(val)}
+                  ) : (
+                    <>
+                      <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-stone-300 dark:border-slate-800">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-lg font-bold text-stone-900 dark:text-white">{selectedPlayer.name}</h3>
+                            <span className="text-xs px-2 py-0.5 rounded bg-[#DFD9CE] dark:bg-slate-800 font-mono text-stone-700 dark:text-slate-300">
+                              {selectedPlayer.position}
                             </span>
                           </div>
-                        ))}
+                          <p className="text-xs text-stone-600 dark:text-slate-400 mt-0.5">
+                            Historical Performance Index & Scouting Profile
+                          </p>
+                        </div>
+
+                        <div className="text-right">
+                          <span className="text-[10px] font-mono text-stone-600 dark:text-slate-400 block uppercase font-semibold">
+                            AI Overall Rating
+                          </span>
+                          <span className="text-2xl font-black font-mono text-emerald-800 dark:text-emerald-400">
+                            {selectedPlayer.rating} <span className="text-sm text-stone-500 dark:text-slate-500">/ 10</span>
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  </div>
 
-                  {/* Historical Scouting Notes */}
-                  {selectedPlayer.historicalNotes && (
-                    <div className="p-3.5 rounded-lg bg-[#DFD9CE] border border-stone-300/80 dark:bg-slate-950/80 dark:border-slate-800/80 text-xs">
-                      <span className="font-mono text-emerald-800 dark:text-emerald-400 font-bold block mb-1">
-                        Historical Match Factor:
-                      </span>
-                      <p className="text-stone-800 dark:text-slate-300 leading-relaxed">
-                        {selectedPlayer.historicalNotes}
-                      </p>
-                    </div>
-                  )}
+                      {/* Radar Chart + Attributes */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                        <div className="flex justify-center p-2 bg-[#DFD9CE] dark:bg-slate-950/60 rounded-xl border border-stone-300 dark:border-slate-800/80">
+                          <PlayerRadarChart
+                            stats={selectedPlayer.radarStats || DEFAULT_PLAYER.radarStats}
+                            playerName={selectedPlayer.name}
+                            size={210}
+                          />
+                        </div>
 
-                  {/* Recent Match Logs */}
-                  {(selectedPlayer.recentPerformances?.length ?? 0) > 0 && (
-                    <div>
-                      <span className="text-xs font-mono uppercase tracking-wider text-stone-700 dark:text-slate-400 block font-bold mb-2">
-                        Recent High-Stakes Fixtures
-                      </span>
-                      <div className="space-y-2">
-                        {selectedPlayer.recentPerformances.map((perf, pIdx) => (
-                          <div
-                            key={pIdx}
-                            className="flex items-center justify-between p-2.5 rounded-lg bg-[#DFD9CE] border border-stone-300/80 dark:bg-slate-950/50 dark:border-slate-800 text-xs"
-                          >
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-semibold text-stone-900 dark:text-slate-200">vs {perf.opponent}</span>
-                                {perf.score && (
-                                  <span className="font-mono text-stone-600 dark:text-slate-400 text-[11px]">({perf.score})</span>
-                                )}
+                        {/* Key Quantitative Metrics Grid */}
+                        <div className="space-y-2">
+                          <span className="text-xs font-mono uppercase tracking-wider text-stone-700 dark:text-slate-400 block font-bold mb-2">
+                            Season & Head-to-Head Metrics
+                          </span>
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            {Object.entries(selectedPlayer.keyMetrics || {}).map(([statName, val], idx) => (
+                              <div
+                                key={idx}
+                                className="p-2.5 rounded-lg bg-[#DFD9CE] border border-stone-300/80 dark:bg-slate-950/80 dark:border-slate-800 flex flex-col"
+                              >
+                                <span className="text-[10px] text-stone-600 dark:text-slate-400 truncate">{statName}</span>
+                                <span className="font-mono font-bold text-stone-900 dark:text-slate-100 text-sm mt-0.5 truncate">
+                                  {String(val)}
+                                </span>
                               </div>
-                              <span className="text-[11px] text-stone-600 dark:text-slate-400 block mt-0.5">
-                                {perf.statSummary}
-                              </span>
-                            </div>
-                            <span className="font-mono font-bold text-emerald-800 bg-emerald-600/15 dark:text-emerald-400 dark:bg-emerald-500/10 px-2 py-0.5 rounded text-[11px]">
-                              {perf.rating}
-                            </span>
+                            ))}
                           </div>
-                        ))}
+                        </div>
                       </div>
-                    </div>
+
+                      {/* Historical Scouting Notes */}
+                      {selectedPlayer.historicalNotes && (
+                        <div className="p-3.5 rounded-lg bg-[#DFD9CE] border border-stone-300/80 dark:bg-slate-950/80 dark:border-slate-800/80 text-xs">
+                          <span className="font-mono text-emerald-800 dark:text-emerald-400 font-bold block mb-1">
+                            Historical Match Factor:
+                          </span>
+                          <p className="text-stone-800 dark:text-slate-300 leading-relaxed">
+                            {selectedPlayer.historicalNotes}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Recent Match Logs */}
+                      {(selectedPlayer.recentPerformances?.length ?? 0) > 0 && (
+                        <div>
+                          <span className="text-xs font-mono uppercase tracking-wider text-stone-700 dark:text-slate-400 block font-bold mb-2">
+                            Recent High-Stakes Fixtures
+                          </span>
+                          <div className="space-y-2">
+                            {selectedPlayer.recentPerformances.map((perf, pIdx) => (
+                              <div
+                                key={pIdx}
+                                className="flex items-center justify-between p-2.5 rounded-lg bg-[#DFD9CE] border border-stone-300/80 dark:bg-slate-950/50 dark:border-slate-800 text-xs"
+                              >
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-semibold text-stone-900 dark:text-slate-200">vs {perf.opponent}</span>
+                                    {perf.score && (
+                                      <span className="font-mono text-stone-600 dark:text-slate-400 text-[11px]">({perf.score})</span>
+                                    )}
+                                  </div>
+                                  <span className="text-[11px] text-stone-600 dark:text-slate-400 block mt-0.5">
+                                    {perf.statSummary}
+                                  </span>
+                                </div>
+                                <span className="font-mono font-bold text-emerald-800 bg-emerald-600/15 dark:text-emerald-400 dark:bg-emerald-500/10 px-2 py-0.5 rounded text-[11px]">
+                                  {perf.rating}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </div>

@@ -243,13 +243,35 @@ export const MatchCard: React.FC<MatchCardProps> = ({
 
             {/* Quick Historical Proof Snippet */}
             {prediction.historicalPerformanceBreakdown?.[0] && (
-              <div className="mt-2.5 pt-2 border-t border-emerald-600/20 text-[11px] text-stone-700 dark:text-slate-300 flex items-start gap-1.5">
-                <TrendingUp className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400 shrink-0 mt-0.5" />
-                <span className="line-clamp-2">
-                  <strong className="text-emerald-900 dark:text-emerald-300 font-medium">Historical Factor:</strong>{' '}
-                  {prediction.historicalPerformanceBreakdown[0].statProof}
-                </span>
-              </div>
+              isVIP ? (
+                <div className="mt-2.5 pt-2 border-t border-emerald-600/20 text-[11px] text-stone-700 dark:text-slate-300 flex items-start gap-1.5">
+                  <TrendingUp className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400 shrink-0 mt-0.5" />
+                  <span className="line-clamp-2">
+                    <strong className="text-emerald-900 dark:text-emerald-300 font-medium">Historical Factor:</strong>{' '}
+                    {prediction.historicalPerformanceBreakdown[0].statProof}
+                  </span>
+                </div>
+              ) : (
+                <div
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onOpenPaywall) onOpenPaywall(match);
+                    else onOpenDetails(match);
+                  }}
+                  className="mt-2.5 pt-2 border-t border-emerald-600/20 text-[11px] text-stone-700 dark:text-stone-300 flex items-center justify-between gap-1.5 cursor-pointer hover:opacity-85 transition-opacity"
+                  title="Click to unlock VIP access and join WhatsApp channel"
+                >
+                  <div className="flex items-center gap-1.5 truncate">
+                    <Lock className="w-3.5 h-3.5 text-emerald-800 dark:text-emerald-400 shrink-0" />
+                    <span className="truncate font-semibold text-stone-800 dark:text-slate-200">
+                      Tactical breakdown &amp; WhatsApp VIP gated
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-900 dark:text-emerald-400 bg-emerald-600/15 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-600/30 shrink-0">
+                    Unlock VIP
+                  </span>
+                </div>
+              )
             )}
           </div>
         ) : (

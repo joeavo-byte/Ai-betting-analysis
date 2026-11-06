@@ -289,15 +289,16 @@ export default function App() {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // Check if a match is unlocked for the user:
-  // 1. Admin always has full access
-  // 2. If match is not VIP gated, it is completely free for all visitors!
-  // 3. If match is VIP gated, check if visitor purchased VIP
+  // Check if deep match forecast features are unlocked:
+  // 1. ONLY admin gets free privilege across all matches!
+  // 2. Regular visitors must have completed payment (verified VIP pass redirected to WhatsApp)
   const isMatchVIP = (matchId: string) => {
     if (isAdminAuthed) return true;
-    if (!isMatchGatedVIP(matchId)) return true;
     if (!vipState.isVIP) return false;
-    return vipState.unlockedMatches.includes('all') || vipState.unlockedMatches.includes(matchId);
+    return (
+      vipState.unlockedMatches.includes('all') ||
+      vipState.unlockedMatches.includes(matchId)
+    );
   };
 
   // Fetch initial matches and payment config from server
