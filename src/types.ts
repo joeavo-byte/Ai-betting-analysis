@@ -29,6 +29,31 @@ export interface PlayerStat {
   historicalNotes: string;
 }
 
+export interface TeamStrength {
+  overall: number;       // 0 - 100 overall composite rating
+  attack: number;        // 0 - 100 offensive potency
+  defense: number;       // 0 - 100 defensive solidity
+  midfieldOrPace?: number; // 0 - 100 control / pace index
+  formIndex: number;     // 0 - 100 recency-weighted form score
+  momentum: 'Surging' | 'Solid' | 'Slumping' | 'Erratic';
+  formStreakSummary?: string; // e.g. "5 Wins in a row" or "Winless in 3"
+  goalsScoredRecent?: number;
+  goalsConcededRecent?: number;
+}
+
+export interface FormAndStrengthBreakdown {
+  homeStrength: TeamStrength;
+  awayStrength: TeamStrength;
+  formClashVerdict: string;
+  strengthAdvantage: 'home' | 'away' | 'balanced';
+  attackVsDefenseDynamic: string;
+  momentumDifferential: string;
+  expectedGoals?: {
+    home: number;
+    away: number;
+  };
+}
+
 export interface TeamData {
   id: string;
   name: string;
@@ -43,6 +68,7 @@ export interface TeamData {
   keyPlayers: PlayerStat[];
   tacticalStyle: string;
   coach?: string;
+  strength?: TeamStrength;
 }
 
 export interface HeadToHeadHistory {
@@ -104,10 +130,12 @@ export interface AIPrediction {
   };
   timestamp: string;
   modelUsed: string;
+  formAndStrength?: FormAndStrengthBreakdown;
   customModifiersApplied?: {
     weather?: string;
     venueAdvantage?: string;
     playerAbsences?: string[];
+    formMomentumShift?: string;
   };
 }
 

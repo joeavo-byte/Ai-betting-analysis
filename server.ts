@@ -7,6 +7,7 @@ import { createServer as createViteServer } from 'vite';
 import { INITIAL_MATCHES, INITIAL_TRACK_RECORD } from './src/data/initialMatches.ts';
 import { EXPANDED_FIXTURE_LIBRARY } from './src/data/fixtureLibrary.ts';
 import { computeStatisticalPrediction } from './src/services/statisticalPredictor.ts';
+import { calculateTeamStrength, compareTeamFormAndStrength } from './src/services/teamStrengthHelper.ts';
 import type { Match, AIPrediction, PredictionTrackRecord } from './src/types.ts';
 
 dotenv.config();
@@ -34,7 +35,13 @@ const initialSeedMap = new Map<string, Match>();
 for (const m of [...INITIAL_MATCHES, ...EXPANDED_FIXTURE_LIBRARY]) {
   const key = `${m.homeTeam.name.toLowerCase()} vs ${m.awayTeam.name.toLowerCase()}`;
   if (!initialSeedMap.has(key)) {
-    if (!m.prediction) {
+    if (!m.homeTeam.strength) {
+      m.homeTeam.strength = calculateTeamStrength(m.homeTeam, m.sport);
+    }
+    if (!m.awayTeam.strength) {
+      m.awayTeam.strength = calculateTeamStrength(m.awayTeam, m.sport);
+    }
+    if (!m.prediction || !m.prediction.formAndStrength) {
       m.prediction = computeStatisticalPrediction(m);
     }
     initialSeedMap.set(key, m);
@@ -602,7 +609,9 @@ app.post('/api/matches/sync-all', (_req, res) => {
   for (const m of EXPANDED_FIXTURE_LIBRARY) {
     const key = `${m.homeTeam.name.toLowerCase()} vs ${m.awayTeam.name.toLowerCase()}`;
     if (!seedMap.has(key)) {
-      if (!m.prediction) {
+      if (!m.homeTeam.strength) m.homeTeam.strength = calculateTeamStrength(m.homeTeam, m.sport);
+      if (!m.awayTeam.strength) m.awayTeam.strength = calculateTeamStrength(m.awayTeam, m.sport);
+      if (!m.prediction || !m.prediction.formAndStrength) {
         m.prediction = computeStatisticalPrediction(m);
       }
       seedMap.set(key, m);
@@ -842,6 +851,19 @@ app.post('/api/predict', async (req, res) => {
       return res.status(404).json({ error: 'Match not found' });
     }
 
+    // 1. Calculate and attach dynamic current form and team strength metrics
+    const homeStrength = calculateTeamStrength(match.homeTeam, match.sport);
+    const awayStrength = calculateTeamStrength(match.awayTeam, match.sport);
+    match.homeTeam.strength = homeStrength;
+    match.awayTeam.strength = awayStrength;
+
+    const formAndStrength = compareTeamFormAndStrength(
+      match.homeTeam,
+      match.awayTeam,
+      match.sport,
+      customModifiers
+    );
+
     const homePlayersStr = match.homeTeam.keyPlayers
       .map(
         (p) =>
@@ -859,17 +881,22 @@ app.post('/api/predict', async (req, res) => {
     const h2hStr = `Total games: ${match.headToHead.totalPlayed}, Home wins: ${match.headToHead.homeWins}, Away wins: ${match.headToHead.awayWins}, Draws: ${match.headToHead.draws ?? 0}. Recent meetings: ${JSON.stringify(match.headToHead.lastMeetings)}`;
 
     const modifiersStr = customModifiers
-      ? `\nActive Custom Modifiers:\n- Weather: ${customModifiers.weather || 'Standard'}\n- Venue Advantage: ${customModifiers.venueAdvantage || 'Normal'}\n- Key Absences / Benchings: ${(customModifiers.playerAbsences || []).join(', ') || 'None'}\n- Tactical Focus: ${customModifiers.tacticalFocus || 'Default'}\n`
+      ? `\nActive Custom Modifiers:\n- Weather: ${customModifiers.weather || 'Standard'}\n- Venue Advantage: ${customModifiers.venueAdvantage || 'Normal'}\n- Key Absences / Benchings: ${(customModifiers.playerAbsences || []).join(', ') || 'None'}\n- Form/Momentum Shift: ${customModifiers.formMomentumShift || 'Standard Form'}\n- Tactical Focus: ${customModifiers.tacticalFocus || 'Default'}\n`
       : '';
 
     const systemPrompt = `You are the lead quantitative sports performance analyst and AI predictor for ApexMatch AI.
-Your job is to analyze upcoming big matches and predict potential winners based primarily on HISTORICAL PLAYER PERFORMANCE DATA, individual player head-to-head matchups, current form, tactical style match-ups, and statistical metrics.
+Your job is to analyze upcoming big matches and predict realistic winners based primarily on:
+1. TEAMS' CURRENT FORM: Weighted recency of last 5 matches, win/loss streak momentum (Surging vs Slumping), goal differential trend.
+2. TEAMS' MULTI-DIMENSIONAL STRENGTH: Overall team rating, offensive attack firepower vs opponent defensive solidity.
+3. HISTORICAL PLAYER PERFORMANCE DATA: Individual star athlete ratings, clutch index, and 1v1 tactical match-ups.
 
-You must output a single, complete, valid JSON object (no markdown around it if possible, or standard json code block) conforming to the following structure:
+Predictions MUST NOT be static or generic! If one team is surging on a win streak with superior attack and the opponent is in a defensive slump, reflect that disparity dynamically in the win percentages and scoreline.
+
+You must output a single, complete, valid JSON object conforming to the following structure:
 {
   "winner": "home" | "away" | "draw",
   "winnerName": "Team or Player Name",
-  "confidence": number (between 51 and 88, reflecting realistic sports uncertainty),
+  "confidence": number (between 52 and 86, reflecting authentic sports uncertainty),
   "probabilities": {
     "home": number,
     "away": number,
@@ -879,8 +906,8 @@ You must output a single, complete, valid JSON object (no markdown around it if 
     "home": number,
     "away": number
   },
-  "summary": "Crisp 1-2 sentence executive summary of the prediction.",
-  "rationale": "In-depth analytical explanation citing player performance metrics, historical matchups, and tactical interactions.",
+  "summary": "Crisp 1-2 sentence executive summary of the prediction incorporating form and attack-defense dynamic.",
+  "rationale": "In-depth analytical explanation citing team form index, streaks, attack vs defense strengths, player duels, and expected goals.",
   "keyPlayerDuel": {
     "playerHome": "Name of home key player",
     "playerAway": "Name of away key player",
@@ -890,24 +917,24 @@ You must output a single, complete, valid JSON object (no markdown around it if 
   },
   "historicalPerformanceBreakdown": [
     {
-      "title": "Historical Stat Insight Title",
-      "statProof": "Exact stat or historical record proof",
-      "impact": "critical" | "moderate" | "supporting"
+      "title": "Current Form Momentum Disparity",
+      "statProof": "Exact form streak, recent goals, and form index comparison",
+      "impact": "critical"
     },
     {
-      "title": "Historical Stat Insight Title 2",
-      "statProof": "Exact stat or historical record proof",
-      "impact": "critical" | "moderate" | "supporting"
+      "title": "Attack Power vs Defensive Solidity",
+      "statProof": "Offensive threat vs defensive vulnerability breakdown",
+      "impact": "critical"
     },
     {
-      "title": "Historical Stat Insight Title 3",
-      "statProof": "Exact stat or historical record proof",
-      "impact": "moderate" | "supporting"
+      "title": "Head-to-Head & Tactical History",
+      "statProof": "Historical meetings and venue superiority data",
+      "impact": "moderate"
     }
   ],
   "tacticalKeys": [
-    "Key tactical condition 1",
-    "Key tactical condition 2",
+    "Key tactical condition 1 based on current form and pressing rhythm",
+    "Key tactical condition 2 based on offensive/defensive matchup",
     "Key tactical condition 3"
   ],
   "xFactorPlayer": {
@@ -922,9 +949,9 @@ You must output a single, complete, valid JSON object (no markdown around it if 
     "awayWinPct": number,
     "drawPct": number (optional, for soccer),
     "mostLikelyScores": [
-      { "score": "e.g. 2 - 1", "pct": 18.5 },
-      { "score": "e.g. 1 - 1", "pct": 15.2 },
-      { "score": "e.g. 2 - 2", "pct": 12.0 },
+      { "score": "e.g. 2 - 1", "pct": 21.5 },
+      { "score": "e.g. 2 - 0", "pct": 17.2 },
+      { "score": "e.g. 1 - 1", "pct": 14.0 },
       { "score": "e.g. 1 - 2", "pct": 10.5 }
     ],
     "totalOverUnder": {
@@ -939,8 +966,23 @@ You must output a single, complete, valid JSON object (no markdown around it if 
 Sport: ${match.sport}
 Tournament: ${match.tournament} (${match.roundOrStage})
 Venue: ${match.venue}, ${match.city}
-Home: ${match.homeTeam.name} (${match.homeTeam.recentForm.join('')}, Record: ${match.homeTeam.recordSummary}, Tactics: ${match.homeTeam.tacticalStyle})
-Away: ${match.awayTeam.name} (${match.awayTeam.recentForm.join('')}, Record: ${match.awayTeam.recordSummary}, Tactics: ${match.awayTeam.tacticalStyle})
+
+HOME TEAM:
+Name: ${match.homeTeam.name} (${match.homeTeam.shortName})
+Current Form: ${match.homeTeam.recentForm.join('-')} | Form Index: ${homeStrength.formIndex}/100 | Momentum: ${homeStrength.momentum} (${homeStrength.formStreakSummary})
+Strength Profile: Overall ${homeStrength.overall}/100 | Attack: ${homeStrength.attack}/100 | Defense: ${homeStrength.defense}/100 | Control: ${homeStrength.midfieldOrPace}/100
+Record & Tactics: ${match.homeTeam.recordSummary} | ${match.homeTeam.tacticalStyle}
+
+AWAY TEAM:
+Name: ${match.awayTeam.name} (${match.awayTeam.shortName})
+Current Form: ${match.awayTeam.recentForm.join('-')} | Form Index: ${awayStrength.formIndex}/100 | Momentum: ${awayStrength.momentum} (${awayStrength.formStreakSummary})
+Strength Profile: Overall ${awayStrength.overall}/100 | Attack: ${awayStrength.attack}/100 | Defense: ${awayStrength.defense}/100 | Control: ${awayStrength.midfieldOrPace}/100
+Record & Tactics: ${match.awayTeam.recordSummary} | ${match.awayTeam.tacticalStyle}
+
+FORM & STRENGTH CLASH MATRIX:
+- Form Clash Verdict: ${formAndStrength.formClashVerdict}
+- Attack vs Defense Dynamic: ${formAndStrength.attackVsDefenseDynamic}
+- Projected Expected Goals (xG): Home ${formAndStrength.expectedGoals?.home} - Away ${formAndStrength.expectedGoals?.away}
 
 Head-to-Head History:
 ${h2hStr}
@@ -975,7 +1017,7 @@ Run your predictive model and return the structured JSON prediction.`;
       predictionData = extractJSON<AIPrediction | null>(response.text, null);
     } catch (apiErr: any) {
       if (isQuotaOrRateLimitError(apiErr) || apiErr?.message?.includes('timeout')) {
-        console.warn('Gemini quota or timeout on /api/predict. Running high-precision Monte Carlo statistical prediction model.');
+        console.warn('Gemini quota or timeout on /api/predict. Running dynamic statistical prediction engine.');
       } else {
         console.warn('Prediction API call encountered error, using mathematical simulator:', apiErr?.message);
       }
@@ -986,7 +1028,8 @@ Run your predictive model and return the structured JSON prediction.`;
       predictionData = computeStatisticalPrediction(match, customModifiers);
     } else {
       predictionData.timestamp = new Date().toISOString();
-      predictionData.modelUsed = 'Gemini 3.8 Flash (Historical Player Performance Model)';
+      predictionData.modelUsed = 'Gemini 3.8 Flash (Dynamic Team Form & Strength Model)';
+      predictionData.formAndStrength = formAndStrength;
       if (customModifiers) {
         predictionData.customModifiersApplied = customModifiers;
       }

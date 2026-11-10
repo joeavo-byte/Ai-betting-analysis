@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { Match, PlayerStat, AIPrediction } from '../types.ts';
 import { PlayerRadarChart } from './PlayerRadarChart.tsx';
+import { calculateTeamStrength } from '../services/teamStrengthHelper.ts';
 
 interface MatchDetailModalProps {
   match: Match;
@@ -81,6 +82,8 @@ export const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
   const [selectedTeamTab, setSelectedTeamTab] = useState<'home' | 'away'>('home');
 
   const { homeTeam, awayTeam, prediction } = match;
+  const homeStrength = homeTeam.strength || calculateTeamStrength(homeTeam, match.sport);
+  const awayStrength = awayTeam.strength || calculateTeamStrength(awayTeam, match.sport);
 
   const initialPlayer =
     homeTeam?.keyPlayers?.[0] ||
@@ -92,6 +95,7 @@ export const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
   // What-If Simulator state
   const [weatherModifier, setWeatherModifier] = useState<string>('Standard');
   const [venueModifier, setVenueModifier] = useState<string>('Normal Home Advantage');
+  const [formShift, setFormShift] = useState<string>('Standard');
   const [absentPlayerIds, setAbsentPlayerIds] = useState<string[]>([]);
   const [tacticalFocus, setTacticalFocus] = useState<string>('Balanced Transition');
 
@@ -115,6 +119,7 @@ export const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
       venueAdvantage: venueModifier,
       playerAbsences: absentPlayerNames,
       tacticalFocus,
+      formMomentumShift: formShift,
     });
     setActiveTab('prediction');
   };
@@ -333,6 +338,186 @@ export const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
                           style={{ width: `${prediction.probabilities?.away ?? 50}%` }}
                         />
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Dynamic Team Current Form & Strength Matrix */}
+                  <div className="rounded-2xl border border-stone-300 dark:border-slate-800 bg-[#EAE5DD] dark:bg-slate-900/60 p-5 space-y-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-stone-300/80 dark:border-slate-800 pb-3">
+                      <div className="flex items-center gap-2">
+                        <Activity className="w-5 h-5 text-emerald-700 dark:text-emerald-400" />
+                        <h3 className="text-sm font-bold text-stone-900 dark:text-white uppercase tracking-wider font-mono">
+                          Team Current Form &amp; Multi-Dimensional Strength Matrix
+                        </h3>
+                      </div>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-600/10 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300 font-bold border border-emerald-600/20">
+                        Dynamic Recency-Weighted Calibration
+                      </span>
+                    </div>
+
+                    {/* Comparison Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Home Team Strength & Form Card */}
+                      <div className="p-4 rounded-xl bg-[#DFD9CE] dark:bg-slate-950/70 border border-stone-300 dark:border-slate-800/80 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2.5">
+                            <img
+                              src={homeTeam.logo}
+                              alt={homeTeam.name}
+                              className="w-8 h-8 rounded-full object-cover bg-white p-0.5 border border-stone-300"
+                            />
+                            <div>
+                              <h4 className="text-sm font-bold text-stone-900 dark:text-white leading-tight">
+                                {homeTeam.name}
+                              </h4>
+                              <span className="text-[10px] font-mono text-stone-600 dark:text-slate-400">
+                                {homeStrength.formStreakSummary || 'Form Recorded'}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="text-right">
+                            <span className="text-lg font-black font-mono text-stone-900 dark:text-white">
+                              {homeStrength.overall}
+                            </span>
+                            <span className="text-[10px] font-mono text-stone-500 block uppercase font-bold">
+                              Overall OVR
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Form Index Progress */}
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-xs font-mono">
+                            <span className="text-stone-700 dark:text-slate-300 font-semibold flex items-center gap-1">
+                              <span>Form Index (Last 5 Games):</span>
+                              <span className="text-[11px] font-bold">
+                                {homeStrength.momentum === 'Surging' ? '🔥 Surging' : homeStrength.momentum === 'Slumping' ? '❄️ Slumping' : '⚡ Solid'}
+                              </span>
+                            </span>
+                            <span className="font-bold text-emerald-800 dark:text-emerald-400">
+                              {homeStrength.formIndex}%
+                            </span>
+                          </div>
+                          <div className="w-full h-2 rounded-full bg-stone-300 dark:bg-slate-800 overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all duration-500 ${
+                                homeStrength.formIndex >= 75
+                                  ? 'bg-emerald-600 dark:bg-emerald-500'
+                                  : homeStrength.formIndex >= 50
+                                  ? 'bg-amber-500'
+                                  : 'bg-rose-500'
+                              }`}
+                              style={{ width: `${homeStrength.formIndex}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Attack & Defense Power Ratings */}
+                        <div className="grid grid-cols-3 gap-2 pt-1 text-center font-mono">
+                          <div className="p-2 rounded-lg bg-[#EAE5DD] dark:bg-slate-900/60 border border-stone-300/80 dark:border-slate-800">
+                            <span className="text-[9px] text-stone-500 dark:text-slate-400 uppercase font-bold block">Attack</span>
+                            <span className="text-xs font-black text-emerald-800 dark:text-emerald-400">{homeStrength.attack}</span>
+                          </div>
+                          <div className="p-2 rounded-lg bg-[#EAE5DD] dark:bg-slate-900/60 border border-stone-300/80 dark:border-slate-800">
+                            <span className="text-[9px] text-stone-500 dark:text-slate-400 uppercase font-bold block">Defense</span>
+                            <span className="text-xs font-black text-indigo-800 dark:text-indigo-400">{homeStrength.defense}</span>
+                          </div>
+                          <div className="p-2 rounded-lg bg-[#EAE5DD] dark:bg-slate-900/60 border border-stone-300/80 dark:border-slate-800">
+                            <span className="text-[9px] text-stone-500 dark:text-slate-400 uppercase font-bold block">Mid/Pace</span>
+                            <span className="text-xs font-black text-stone-800 dark:text-slate-300">{homeStrength.midfieldOrPace}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Away Team Strength & Form Card */}
+                      <div className="p-4 rounded-xl bg-[#DFD9CE] dark:bg-slate-950/70 border border-stone-300 dark:border-slate-800/80 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2.5">
+                            <img
+                              src={awayTeam.logo}
+                              alt={awayTeam.name}
+                              className="w-8 h-8 rounded-full object-cover bg-white p-0.5 border border-stone-300"
+                            />
+                            <div>
+                              <h4 className="text-sm font-bold text-stone-900 dark:text-white leading-tight">
+                                {awayTeam.name}
+                              </h4>
+                              <span className="text-[10px] font-mono text-stone-600 dark:text-slate-400">
+                                {awayStrength.formStreakSummary || 'Form Recorded'}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="text-right">
+                            <span className="text-lg font-black font-mono text-stone-900 dark:text-white">
+                              {awayStrength.overall}
+                            </span>
+                            <span className="text-[10px] font-mono text-stone-500 block uppercase font-bold">
+                              Overall OVR
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Form Index Progress */}
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-xs font-mono">
+                            <span className="text-stone-700 dark:text-slate-300 font-semibold flex items-center gap-1">
+                              <span>Form Index (Last 5 Games):</span>
+                              <span className="text-[11px] font-bold">
+                                {awayStrength.momentum === 'Surging' ? '🔥 Surging' : awayStrength.momentum === 'Slumping' ? '❄️ Slumping' : '⚡ Solid'}
+                              </span>
+                            </span>
+                            <span className="font-bold text-indigo-800 dark:text-indigo-400">
+                              {awayStrength.formIndex}%
+                            </span>
+                          </div>
+                          <div className="w-full h-2 rounded-full bg-stone-300 dark:bg-slate-800 overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all duration-500 ${
+                                awayStrength.formIndex >= 75
+                                  ? 'bg-emerald-600 dark:bg-emerald-500'
+                                  : awayStrength.formIndex >= 50
+                                  ? 'bg-amber-500'
+                                  : 'bg-rose-500'
+                              }`}
+                              style={{ width: `${awayStrength.formIndex}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Attack & Defense Power Ratings */}
+                        <div className="grid grid-cols-3 gap-2 pt-1 text-center font-mono">
+                          <div className="p-2 rounded-lg bg-[#EAE5DD] dark:bg-slate-900/60 border border-stone-300/80 dark:border-slate-800">
+                            <span className="text-[9px] text-stone-500 dark:text-slate-400 uppercase font-bold block">Attack</span>
+                            <span className="text-xs font-black text-emerald-800 dark:text-emerald-400">{awayStrength.attack}</span>
+                          </div>
+                          <div className="p-2 rounded-lg bg-[#EAE5DD] dark:bg-slate-900/60 border border-stone-300/80 dark:border-slate-800">
+                            <span className="text-[9px] text-stone-500 dark:text-slate-400 uppercase font-bold block">Defense</span>
+                            <span className="text-xs font-black text-indigo-800 dark:text-indigo-400">{awayStrength.defense}</span>
+                          </div>
+                          <div className="p-2 rounded-lg bg-[#EAE5DD] dark:bg-slate-900/60 border border-stone-300/80 dark:border-slate-800">
+                            <span className="text-[9px] text-stone-500 dark:text-slate-400 uppercase font-bold block">Mid/Pace</span>
+                            <span className="text-xs font-black text-stone-800 dark:text-slate-300">{awayStrength.midfieldOrPace}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Form Clash Narrative Footer */}
+                    <div className="p-3.5 rounded-xl bg-[#DFD9CE] dark:bg-slate-950/80 border border-stone-300/80 dark:border-slate-800 text-xs space-y-1.5">
+                      <div className="flex items-center gap-1.5 font-mono text-emerald-800 dark:text-emerald-400 font-bold">
+                        <Flame className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                        <span>Form Clash &amp; Tactical Impact:</span>
+                      </div>
+                      <p className="text-stone-800 dark:text-slate-300 leading-relaxed font-normal">
+                        {prediction.formAndStrength?.formClashVerdict || `${homeTeam.name} and ${awayTeam.name} match up with contrasting momentum curves.`}
+                      </p>
+                      {prediction.formAndStrength?.expectedGoals && (
+                        <div className="pt-1 flex items-center gap-4 text-[11px] font-mono text-stone-700 dark:text-slate-400">
+                          <span>Projected Expected Goals (xG): <strong className="text-stone-900 dark:text-slate-200">{homeTeam.shortName} {prediction.formAndStrength.expectedGoals.home}</strong> vs <strong className="text-stone-900 dark:text-slate-200">{awayTeam.shortName} {prediction.formAndStrength.expectedGoals.away}</strong></span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -1069,6 +1254,26 @@ export const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
                         <option value="Hostile Cauldron (80,000+ Fans)">Extreme Hostile Cauldron Atmosphere (+18% Win Pct)</option>
                         <option value="Neutral Venue (Cup Final)">Neutral Ground (0% Venue Bias)</option>
                         <option value="Empty Stadium / Closed Doors">Closed Doors Match</option>
+                      </select>
+                    </div>
+
+                    {/* Team Current Form & Momentum Shift */}
+                    <div className="rounded-xl border border-stone-300 dark:border-slate-800 bg-[#EAE5DD] dark:bg-slate-900/60 p-4 md:col-span-2">
+                      <label className="text-xs font-mono uppercase tracking-wider text-stone-700 dark:text-slate-400 font-bold block mb-2 flex flex-wrap items-center justify-between gap-1">
+                        <span>Team Current Form &amp; Streak Momentum Shift</span>
+                        <span className="text-[10px] text-emerald-800 dark:text-emerald-400 font-semibold normal-case">
+                          Live Streaks: {homeStrength.formStreakSummary} vs {awayStrength.formStreakSummary}
+                        </span>
+                      </label>
+                      <select
+                        value={formShift}
+                        onChange={(e) => setFormShift(e.target.value)}
+                        className="w-full bg-[#DFD9CE] border border-stone-300 rounded-lg px-3 py-2 text-xs text-stone-900 dark:bg-slate-950 dark:border-slate-800 dark:text-slate-200 focus:outline-none focus:border-emerald-600"
+                      >
+                        <option value="Standard">Standard / Natural Current Form Records ({homeStrength.formIndex}% vs {awayStrength.formIndex}%)</option>
+                        <option value="Home Surging / Away Slump">🔥 {homeTeam.name} Surging (+22% Form Boost) / ❄️ {awayTeam.name} Slump (-25%)</option>
+                        <option value="Away Surging / Home Slump">🔥 {awayTeam.name} Surging (+22% Form Boost) / ❄️ {homeTeam.name} Slump (-25%)</option>
+                        <option value="Both Peak Form">⚡ Both Teams at Peak Season Form (95% &amp; 92% Form Index)</option>
                       </select>
                     </div>
                   </div>

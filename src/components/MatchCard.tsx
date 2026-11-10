@@ -12,9 +12,11 @@ import {
   Activity,
   Lock,
   ShieldCheck,
-  MessageCircle
+  MessageCircle,
+  Zap
 } from 'lucide-react';
 import { Match } from '../types.ts';
+import { calculateTeamStrength } from '../services/teamStrengthHelper.ts';
 
 interface MatchCardProps {
   match: Match;
@@ -34,6 +36,8 @@ export const MatchCard: React.FC<MatchCardProps> = ({
   onOpenPaywall,
 }) => {
   const { homeTeam, awayTeam, prediction, headToHead } = match;
+  const homeStrength = homeTeam.strength || calculateTeamStrength(homeTeam, match.sport);
+  const awayStrength = awayTeam.strength || calculateTeamStrength(awayTeam, match.sport);
 
   const renderFormPills = (form: ('W' | 'D' | 'L')[]) => {
     return (
@@ -114,7 +118,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({
         </div>
 
         {/* Team Matchup Banner */}
-        <div className="mt-4 grid grid-cols-11 items-center gap-2 bg-[#EAE5DD] dark:bg-slate-950/60 rounded-xl p-3.5 border border-stone-300/80 dark:border-slate-800/80">
+        <div className="mt-4 grid grid-cols-11 items-center gap-2 bg-[#EAE5DD] dark:bg-slate-950/60 rounded-xl p-3 border border-stone-300/80 dark:border-slate-800/80">
           {/* Home Team */}
           <div className="col-span-5 flex flex-col items-center text-center">
             <div className="w-12 h-12 rounded-full overflow-hidden bg-[#F5F2EB] dark:bg-slate-800 border-2 border-stone-300 dark:border-slate-700/80 flex items-center justify-center p-1 shadow-sm">
@@ -127,14 +131,36 @@ export const MatchCard: React.FC<MatchCardProps> = ({
                 }}
               />
             </div>
-            <h4 className="mt-2 text-sm font-bold text-stone-900 dark:text-slate-100 line-clamp-1">
+            <h4 className="mt-1.5 text-sm font-bold text-stone-900 dark:text-slate-100 line-clamp-1">
               {homeTeam.name}
             </h4>
-            <span className="text-[11px] text-stone-600 dark:text-slate-400 font-mono mt-0.5">
+            <span className="text-[10px] text-stone-600 dark:text-slate-400 font-mono">
               {homeTeam.league}
             </span>
+
+            {/* Form & Strength Ratings */}
             <div className="mt-1.5 flex items-center gap-1">
               {renderFormPills(homeTeam.recentForm)}
+            </div>
+
+            <div className="mt-1.5 flex flex-col items-center gap-0.5 w-full">
+              <div className="flex items-center gap-1 font-mono text-[10px] font-bold">
+                <span className="px-1.5 py-0.5 rounded bg-[#DFD9CE] dark:bg-slate-900 text-stone-800 dark:text-slate-200 border border-stone-300 dark:border-slate-800">
+                  {homeStrength.overall} OVR
+                </span>
+                <span className={`px-1 py-0.5 rounded text-[9px] font-semibold ${
+                  homeStrength.momentum === 'Surging'
+                    ? 'text-emerald-800 bg-emerald-100 dark:text-emerald-300 dark:bg-emerald-950/60'
+                    : homeStrength.momentum === 'Slumping'
+                    ? 'text-rose-800 bg-rose-100 dark:text-rose-300 dark:bg-rose-950/60'
+                    : 'text-amber-800 bg-amber-100 dark:text-amber-300 dark:bg-amber-950/60'
+                }`}>
+                  {homeStrength.formIndex}% Form {homeStrength.momentum === 'Surging' ? '🔥' : homeStrength.momentum === 'Slumping' ? '❄️' : '⚡'}
+                </span>
+              </div>
+              <span className="text-[9px] font-mono text-stone-500 dark:text-slate-400">
+                Atk {homeStrength.attack} • Def {homeStrength.defense}
+              </span>
             </div>
           </div>
 
@@ -146,6 +172,11 @@ export const MatchCard: React.FC<MatchCardProps> = ({
             <span className="mt-1 text-[9px] font-mono text-stone-500 dark:text-slate-500 whitespace-nowrap">
               H2H: {headToHead.homeWins}-{headToHead.draws ?? 0}-{headToHead.awayWins}
             </span>
+            {prediction?.formAndStrength?.expectedGoals && (
+              <span className="mt-1 text-[8.5px] font-mono text-emerald-800 dark:text-emerald-400 font-bold bg-emerald-600/10 dark:bg-emerald-500/10 px-1 py-0.5 rounded border border-emerald-600/20 whitespace-nowrap">
+                xG {prediction.formAndStrength.expectedGoals.home}-{prediction.formAndStrength.expectedGoals.away}
+              </span>
+            )}
           </div>
 
           {/* Away Team */}
@@ -160,14 +191,36 @@ export const MatchCard: React.FC<MatchCardProps> = ({
                 }}
               />
             </div>
-            <h4 className="mt-2 text-sm font-bold text-stone-900 dark:text-slate-100 line-clamp-1">
+            <h4 className="mt-1.5 text-sm font-bold text-stone-900 dark:text-slate-100 line-clamp-1">
               {awayTeam.name}
             </h4>
-            <span className="text-[11px] text-stone-600 dark:text-slate-400 font-mono mt-0.5">
+            <span className="text-[10px] text-stone-600 dark:text-slate-400 font-mono">
               {awayTeam.league}
             </span>
+
+            {/* Form & Strength Ratings */}
             <div className="mt-1.5 flex items-center gap-1">
               {renderFormPills(awayTeam.recentForm)}
+            </div>
+
+            <div className="mt-1.5 flex flex-col items-center gap-0.5 w-full">
+              <div className="flex items-center gap-1 font-mono text-[10px] font-bold">
+                <span className="px-1.5 py-0.5 rounded bg-[#DFD9CE] dark:bg-slate-900 text-stone-800 dark:text-slate-200 border border-stone-300 dark:border-slate-800">
+                  {awayStrength.overall} OVR
+                </span>
+                <span className={`px-1 py-0.5 rounded text-[9px] font-semibold ${
+                  awayStrength.momentum === 'Surging'
+                    ? 'text-emerald-800 bg-emerald-100 dark:text-emerald-300 dark:bg-emerald-950/60'
+                    : awayStrength.momentum === 'Slumping'
+                    ? 'text-rose-800 bg-rose-100 dark:text-rose-300 dark:bg-rose-950/60'
+                    : 'text-amber-800 bg-amber-100 dark:text-amber-300 dark:bg-amber-950/60'
+                }`}>
+                  {awayStrength.formIndex}% Form {awayStrength.momentum === 'Surging' ? '🔥' : awayStrength.momentum === 'Slumping' ? '❄️' : '⚡'}
+                </span>
+              </div>
+              <span className="text-[9px] font-mono text-stone-500 dark:text-slate-400">
+                Atk {awayStrength.attack} • Def {awayStrength.defense}
+              </span>
             </div>
           </div>
         </div>
@@ -240,6 +293,17 @@ export const MatchCard: React.FC<MatchCardProps> = ({
                 />
               </div>
             </div>
+
+            {/* Dynamic Form Momentum Badge */}
+            {prediction.formAndStrength?.formClashVerdict && (
+              <div className="mt-2 text-[10.5px] leading-snug text-stone-700 dark:text-slate-300 bg-[#E0DACE] dark:bg-slate-900/60 p-2 rounded-lg border border-stone-300/80 dark:border-slate-800/60 flex items-start gap-1.5">
+                <Flame className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <span className="line-clamp-2">
+                  <strong className="text-stone-900 dark:text-slate-200 font-semibold">Form &amp; Strength Factor:</strong>{' '}
+                  {prediction.formAndStrength.formClashVerdict}
+                </span>
+              </div>
+            )}
 
             {/* Quick Historical Proof Snippet */}
             {prediction.historicalPerformanceBreakdown?.[0] && (
