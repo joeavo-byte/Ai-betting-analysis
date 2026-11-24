@@ -554,10 +554,9 @@ export default function App() {
   }, [matches]);
 
   return (
-    <div className="min-h-screen transition-colors duration-200 bg-[#EFECE6] text-stone-900 dark:bg-slate-950 dark:text-slate-100 flex flex-col font-['Plus_Jakarta_Sans'] relative overflow-x-hidden">
-      {/* Soft warm ambient lighting (toned down opacity to eliminate bright glare) */}
-      <div className="absolute -top-32 left-1/4 w-[500px] h-[500px] rounded-full bg-gradient-to-br from-amber-500/5 to-emerald-500/5 dark:from-emerald-500/10 dark:to-indigo-500/10 blur-3xl pointer-events-none" />
-      <div className="absolute top-[420px] -right-20 w-[450px] h-[450px] rounded-full bg-gradient-to-br from-amber-400/5 to-stone-400/5 dark:from-indigo-500/10 dark:to-purple-500/10 blur-3xl pointer-events-none" />
+    <div className="min-h-screen transition-colors duration-200 bg-[radial-gradient(ellipse_at_top_left,_#F1EEE7_0%,_#E9E5DC_48%,_#E0DCD1_100%)] text-stone-900 dark:bg-[radial-gradient(ellipse_at_top,_#111c2e_0%,_#090e1a_55%,_#050811_100%)] dark:text-slate-100 flex flex-col font-['Plus_Jakarta_Sans'] relative overflow-x-hidden">
+      {/* Subtle architectural top vignette */}
+      <div className="absolute inset-x-0 top-0 h-80 bg-gradient-to-b from-emerald-900/[0.03] to-transparent dark:from-emerald-500/[0.06] dark:to-transparent pointer-events-none" />
 
       {/* Toast Notification */}
       {toastMessage && (
@@ -613,10 +612,9 @@ export default function App() {
           <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6 space-y-8 relative z-10">
             {/* Spotlight Hero Banner (The Highest Stakes Upcoming Match) */}
             {featuredMatch && (
-              <section className="relative rounded-3xl border border-stone-300/80 bg-gradient-to-br from-[#EAE5DD] via-[#F4EFEB] to-[#E7E2DA] shadow-sm dark:border-slate-800 dark:bg-gradient-to-r dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 dark:shadow-2xl p-6 sm:p-8 overflow-hidden transition-all">
-                {/* Background glowing gradients (toned down) */}
-                <div className="absolute -top-24 -left-24 w-72 h-72 rounded-full bg-amber-500/10 dark:bg-emerald-500/10 blur-3xl pointer-events-none" />
-                <div className="absolute -bottom-24 -right-24 w-72 h-72 rounded-full bg-emerald-500/10 dark:bg-indigo-500/10 blur-3xl pointer-events-none" />
+              <section className="relative rounded-3xl border border-stone-300/90 bg-gradient-to-br from-[#F2EFE8] via-[#E9E6DD] to-[#DFDFD6] shadow-sm dark:border-slate-800 dark:bg-gradient-to-br dark:from-slate-900/95 dark:via-[#0d1624] dark:to-[#091819] dark:shadow-2xl p-6 sm:p-8 overflow-hidden transition-all">
+                {/* Subtle studio sheen */}
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(16,185,129,0.07),_transparent_55%)] dark:bg-[radial-gradient(circle_at_top_right,_rgba(16,185,129,0.12),_transparent_55%)] pointer-events-none" />
 
                 <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
                   <div className="max-w-2xl">
@@ -663,7 +661,7 @@ export default function App() {
               </div>
 
               {/* AI Prediction Highlight Box */}
-              <div className="w-full lg:w-80 rounded-2xl bg-[#F7F4EE] dark:bg-slate-950/90 border border-emerald-600/30 p-5 shadow-sm flex flex-col justify-between">
+              <div className="w-full lg:w-80 rounded-2xl bg-gradient-to-b from-[#F6F4EE] to-[#ECE8E0] dark:bg-gradient-to-b dark:from-slate-900/95 dark:to-slate-950/95 border border-emerald-700/25 dark:border-emerald-500/30 p-5 shadow-sm flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[11px] font-mono uppercase tracking-wider text-emerald-700 dark:text-emerald-400 font-bold flex items-center gap-1">

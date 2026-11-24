@@ -261,7 +261,7 @@ export const VIPPaywallModal: React.FC<VIPPaywallModalProps> = ({
                 href={paymentSuccessData.whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white dark:text-slate-950 font-black text-sm shadow-lg shadow-emerald-500/30 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-emerald-700 via-emerald-600 to-teal-700 hover:from-emerald-600 hover:to-teal-600 dark:from-emerald-500 dark:via-teal-400 dark:to-emerald-400 dark:hover:from-emerald-400 dark:hover:to-teal-300 text-white dark:text-slate-950 font-black text-sm shadow-lg shadow-emerald-900/15 dark:shadow-emerald-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
               >
                 <MessageCircle className="w-5 h-5" />
                 <span>Join VIP WhatsApp Channel Now</span>
@@ -417,7 +417,7 @@ export const VIPPaywallModal: React.FC<VIPPaywallModalProps> = ({
               <button
                 onClick={handlePayWithPaystack}
                 disabled={isProcessing}
-                className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-400 hover:from-emerald-400 hover:to-teal-300 text-white dark:text-slate-950 font-black text-sm shadow-xl shadow-emerald-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98 disabled:opacity-50"
+                className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-700 via-emerald-600 to-teal-700 hover:from-emerald-600 hover:to-teal-600 dark:from-emerald-500 dark:via-teal-400 dark:to-emerald-400 dark:hover:from-emerald-400 dark:hover:to-teal-300 text-white dark:text-slate-950 font-black text-sm shadow-xl shadow-emerald-900/15 dark:shadow-emerald-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98 disabled:opacity-50"
               >
                 <CreditCard className="w-5 h-5" />
                 <span>

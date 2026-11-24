@@ -137,7 +137,7 @@ export const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-stone-300 dark:border-slate-800 px-6 py-4 bg-[#E5DFD5] dark:bg-slate-900/90">
+        <div className="flex items-center justify-between border-b border-stone-300 dark:border-slate-800 px-6 py-4 bg-gradient-to-r from-[#E6E2D8] via-[#EBE7DF] to-[#E1E3DD] dark:bg-gradient-to-r dark:from-slate-900 dark:via-[#0c1422] dark:to-slate-900">
           <div>
             <div className="flex items-center gap-2">
               <span className="px-2.5 py-0.5 rounded-full bg-emerald-700/15 text-emerald-900 dark:bg-emerald-600/20 dark:text-emerald-400 font-mono text-xs border border-emerald-600/30 font-bold">
@@ -225,8 +225,8 @@ export const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
                   {isVIP ? (
                     <div className={`rounded-xl border p-4 flex flex-wrap items-center justify-between gap-3 shadow-sm ${
                       isOwner
-                        ? 'border-emerald-600/50 bg-[#E5DFD5] dark:bg-gradient-to-r dark:from-emerald-950/80 dark:via-slate-900 dark:to-indigo-950/60'
-                        : 'border-emerald-600/40 bg-[#E5DFD5] dark:bg-gradient-to-r dark:from-emerald-950/60 dark:via-slate-900 dark:to-emerald-950/40'
+                        ? 'border-emerald-600/45 bg-gradient-to-r from-[#E3EAE4] via-[#EAE7DF] to-[#E2E4EA] dark:bg-gradient-to-r dark:from-[#0c1b19] dark:via-slate-900 dark:to-[#0f172a]'
+                        : 'border-emerald-600/35 bg-gradient-to-r from-[#E3EAE4] to-[#E8E4DC] dark:bg-gradient-to-r dark:from-[#0c1a19] dark:via-slate-900 dark:to-[#0a1518]'
                     }`}>
                       <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-lg bg-emerald-600/15 border border-emerald-600/30 dark:bg-emerald-500/20 dark:border-emerald-500/40 flex items-center justify-center text-emerald-800 dark:text-emerald-400">
@@ -271,7 +271,7 @@ export const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
                   )}
 
                   {/* Hero Prediction Banner */}
-                  <div className="rounded-2xl border border-stone-300 dark:border-emerald-500/30 bg-[#E5DFD5] dark:bg-gradient-to-br dark:from-emerald-950/40 dark:via-slate-900 dark:to-indigo-950/30 p-5 sm:p-6 shadow-sm relative overflow-hidden">
+                  <div className="rounded-2xl border border-stone-300 dark:border-emerald-500/30 bg-gradient-to-br from-[#ECE8DF] via-[#E5E4DC] to-[#DCE3DD] dark:bg-gradient-to-br dark:from-[#0c1b19] dark:via-slate-900 dark:to-[#0d1526] p-5 sm:p-6 shadow-sm relative overflow-hidden">
                     <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                       <div>
                         <div className="flex items-center gap-2">
@@ -682,7 +682,7 @@ export const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
                       </div>
                     </div>
                   ) : (
-                    <div className="rounded-2xl border-2 border-emerald-600/40 dark:border-emerald-500/50 bg-[#E5DFD5] dark:bg-gradient-to-br dark:from-emerald-950/80 dark:via-slate-900 dark:to-indigo-950/70 p-6 sm:p-8 text-center shadow-md overflow-hidden my-4 space-y-4">
+                    <div className="rounded-2xl border border-emerald-700/35 dark:border-emerald-500/40 bg-gradient-to-br from-[#ECE9E1] via-[#E5E4DC] to-[#DCE3DD] dark:bg-gradient-to-br dark:from-[#0c1a19] dark:via-slate-900 dark:to-[#0d1525] p-6 sm:p-8 text-center shadow-md overflow-hidden my-4 space-y-4">
                       <div className="w-14 h-14 rounded-2xl bg-emerald-600/15 border border-emerald-600/30 text-emerald-800 dark:bg-emerald-500/20 dark:border-emerald-500/40 dark:text-emerald-400 mx-auto flex items-center justify-center">
                         <Lock className="w-7 h-7" />
                       </div>
@@ -1006,7 +1006,7 @@ export const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
           {activeTab === 'simulation' && (
             <div className="space-y-6">
               {!isVIP ? (
-                <div className="rounded-2xl border-2 border-emerald-600/40 dark:border-emerald-500/40 bg-[#E5DFD5] dark:bg-gradient-to-br dark:from-emerald-950/60 dark:via-slate-900 dark:to-indigo-950/50 p-6 sm:p-8 text-center space-y-4 shadow-md">
+                <div className="rounded-2xl border border-emerald-700/35 dark:border-emerald-500/40 bg-gradient-to-br from-[#ECE9E1] via-[#E5E4DC] to-[#DCE3DD] dark:bg-gradient-to-br dark:from-[#0c1a19] dark:via-slate-900 dark:to-[#0d1525] p-6 sm:p-8 text-center space-y-4 shadow-md">
                   <div className="w-14 h-14 rounded-2xl bg-emerald-600/15 border border-emerald-600/30 text-emerald-800 dark:bg-emerald-500/20 dark:border-emerald-500/40 dark:text-emerald-400 mx-auto flex items-center justify-center">
                     <Lock className="w-7 h-7" />
                   </div>
@@ -1142,7 +1142,7 @@ export const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
           {activeTab === 'whatif' && (
             <div className="space-y-6">
               {!isVIP ? (
-                <div className="rounded-2xl border-2 border-indigo-500/40 bg-[#E5DFD5] dark:bg-gradient-to-br dark:from-indigo-950/60 dark:via-slate-900 dark:to-slate-950 p-6 sm:p-8 text-center space-y-4 shadow-md">
+                <div className="rounded-2xl border border-indigo-600/30 dark:border-indigo-500/40 bg-gradient-to-br from-[#ECE9E1] via-[#E5E4E0] to-[#DFE1EA] dark:bg-gradient-to-br dark:from-[#0f1628] dark:via-slate-900 dark:to-[#0b171b] p-6 sm:p-8 text-center space-y-4 shadow-md">
                   <div className="w-14 h-14 rounded-2xl bg-indigo-600/15 border border-indigo-600/30 text-indigo-800 dark:bg-indigo-500/20 dark:border-indigo-500/40 dark:text-indigo-400 mx-auto flex items-center justify-center">
                     <SlidersHorizontal className="w-7 h-7" />
                   </div>

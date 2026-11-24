@@ -64,7 +64,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({
   };
 
   return (
-    <div className="group relative rounded-2xl border border-stone-300/80 bg-[#F5F2EB] text-stone-900 shadow-sm hover:border-stone-400 hover:shadow-md dark:border-slate-800 dark:bg-gradient-to-b dark:from-slate-900/90 dark:to-slate-950/90 dark:text-slate-100 dark:hover:border-slate-700 transition-all duration-300 flex flex-col justify-between p-5">
+    <div className="group relative rounded-2xl border border-stone-300/90 bg-gradient-to-b from-[#F4F1EA] to-[#ECE8DF] text-stone-900 shadow-sm hover:border-stone-400/90 hover:shadow-md dark:border-slate-800 dark:bg-gradient-to-b dark:from-slate-900/95 dark:to-[#080d18] dark:text-slate-100 dark:hover:border-slate-700 transition-all duration-300 flex flex-col justify-between p-5">
       {/* Top Match Metadata */}
       <div>
         <div className="flex items-center justify-between gap-2 pb-3.5 border-b border-stone-300/80 dark:border-slate-800/80 text-xs">
@@ -251,7 +251,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({
 
         {/* AI Prediction Section */}
         {prediction ? (
-          <div className="mt-3.5 rounded-xl bg-[#E6EBE6] dark:bg-emerald-950/20 border border-emerald-600/30 p-3 text-xs">
+          <div className="mt-3.5 rounded-xl bg-gradient-to-br from-[#E4EBE5] to-[#DCE4DD] dark:bg-gradient-to-br dark:from-emerald-950/35 dark:to-slate-900/75 border border-emerald-700/25 dark:border-emerald-500/30 p-3 text-xs">
             <div className="flex flex-wrap items-center justify-between gap-1.5 mb-2">
               <div className="flex items-center gap-1.5 text-emerald-900 dark:text-emerald-400 font-bold font-mono">
                 <Brain className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />

@@ -60,9 +60,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   ];
 
   return (
-    <header className="sticky top-0 z-30 border-b border-stone-300/80 bg-[#EBE6DF]/95 backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-950/85 transition-colors duration-200">
-      {/* Top Banner / Ticker with warm ambient sports gradient */}
-      <div className="bg-[#E2DDD5] border-b border-stone-300/70 dark:from-emerald-950/40 dark:via-slate-900 dark:to-indigo-950/40 dark:border-slate-800/60 px-4 py-1.5 text-xs text-stone-700 dark:text-slate-300">
+    <header className="sticky top-0 z-30 border-b border-stone-300/80 bg-[#ECE8E0]/95 backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-950/85 transition-colors duration-200">
+      {/* Top Banner / Ticker */}
+      <div className="bg-gradient-to-r from-[#E2DDD4] via-[#EAE6DE] to-[#DFE3DF] border-b border-stone-300/70 dark:bg-gradient-to-r dark:from-[#0a1819] dark:via-slate-900 dark:to-[#0d1424] dark:border-slate-800/60 px-4 py-1.5 text-xs text-stone-700 dark:text-slate-300">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span className="flex h-2 w-2 relative">
@@ -100,7 +100,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
         {/* Logo & Brand */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-600 via-emerald-700 to-teal-800 flex items-center justify-center shadow-md shadow-stone-400/20 border border-amber-500/30 text-white">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-700 via-emerald-800 to-slate-900 dark:from-emerald-500 dark:to-teal-700 flex items-center justify-center shadow-md shadow-stone-400/20 dark:shadow-emerald-950/50 border border-emerald-600/30 text-white">
             <Trophy className="w-5 h-5 font-bold" />
           </div>
           <div>
