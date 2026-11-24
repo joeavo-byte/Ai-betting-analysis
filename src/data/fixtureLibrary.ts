@@ -1508,6 +1508,682 @@ export const EXPANDED_FIXTURE_LIBRARY: Match[] = [
         { date: '2024-09-29', homeScore: 35, awayScore: 10, winner: 'home', competition: 'NFL Regular Season', topPerformer: 'Derrick Henry' }
       ]
     }
+  },
+
+  // ==========================================
+  // UEFA COMPETITIONS (UCL, UEL, UECL, UNL)
+  // ==========================================
+  {
+    id: 'm-ucl-liv-rma',
+    sport: 'football',
+    tournament: 'UEFA Champions League',
+    roundOrStage: 'League Phase Matchday 5',
+    date: '2026-11-26',
+    time: '20:00 GMT',
+    venue: 'Anfield',
+    city: 'Liverpool',
+    country: 'England',
+    importanceScore: 99,
+    headline: 'Anfield Under the Lights: Unstoppable Slot Machine vs European Kings Real Madrid',
+    homeTeam: {
+      id: 'team-liv-ucl',
+      name: 'Liverpool',
+      shortName: 'LIV',
+      logo: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=128&auto=format&fit=crop&q=80',
+      primaryColor: '#C8102E',
+      secondaryColor: '#FFFFFF',
+      league: 'UEFA Champions League (1st)',
+      ranking: '#3 UEFA Club Ranking',
+      recentForm: ['W', 'W', 'W', 'W', 'W'],
+      recordSummary: '17W - 2D - 1L (Home: 9W - 0D - 1L)',
+      tacticalStyle: 'Controlled pressing triggers, devastating transitional counter-attacks via Salah & Díaz',
+      coach: 'Arne Slot',
+      keyPlayers: [
+        {
+          id: 'ucl-liv-salah',
+          name: 'Mohamed Salah',
+          position: 'Right Winger',
+          number: 11,
+          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+          nationality: 'Egypt',
+          form: ['W', 'W', 'W', 'W', 'W'],
+          rating: 9.2,
+          keyMetrics: { 'UCL G+A': 9, 'Goals (All)': 18, 'Key Passes / 90': 3.2 },
+          radarStats: { attack: 97, defense: 54, clutch: 96, consistency: 95, stamina: 90, tactical: 93 },
+          injuryStatus: 'healthy',
+          recentPerformances: [{ opponent: 'Bayer Leverkusen', score: '4-0', statSummary: '2 Assists, 4 Chances Created', rating: 9.1, date: '2026-11-05' }],
+          historicalNotes: 'Directly involved in a goal every 68 minutes in European nights at Anfield.'
+        }
+      ]
+    },
+    awayTeam: {
+      id: 'team-rma-ucl',
+      name: 'Real Madrid',
+      shortName: 'RMA',
+      logo: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=128&auto=format&fit=crop&q=80',
+      primaryColor: '#FEBE10',
+      secondaryColor: '#00529F',
+      league: 'UEFA Champions League (12th)',
+      ranking: '#1 UEFA Club Ranking',
+      recentForm: ['W', 'L', 'W', 'W', 'L'],
+      recordSummary: '13W - 3D - 4L (Away: 5W - 2D - 3L)',
+      tacticalStyle: 'Explosive vertical counter-thrusts via Mbappé and Bellingham, deep late-game resilience',
+      coach: 'Carlo Ancelotti',
+      keyPlayers: [
+        {
+          id: 'ucl-rma-mbappe',
+          name: 'Kylian Mbappé',
+          position: 'Striker',
+          number: 9,
+          avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+          nationality: 'France',
+          form: ['W', 'L', 'W', 'W', 'L'],
+          rating: 8.9,
+          keyMetrics: { 'Sprint Peak (km/h)': 36.8, 'xG / 90': 0.84, 'UCL Goals': 4 },
+          radarStats: { attack: 97, defense: 32, clutch: 93, consistency: 87, stamina: 91, tactical: 86 },
+          injuryStatus: 'healthy',
+          recentPerformances: [{ opponent: 'Leganés', score: '3-0', statSummary: '1 Goal, 5 Shots on Target', rating: 8.8, date: '2026-11-21' }],
+          historicalNotes: 'Always threatens high defensive lines in open-field transition.'
+        }
+      ]
+    },
+    headToHead: {
+      totalPlayed: 11,
+      homeWins: 3,
+      awayWins: 7,
+      draws: 1,
+      lastMeetings: [
+        { date: '2023-03-15', homeScore: 0, awayScore: 1, winner: 'away', competition: 'UEFA Champions League R16', topPerformer: 'Karim Benzema' }
+      ]
+    }
+  },
+  {
+    id: 'm-ucl-bay-psg',
+    sport: 'football',
+    tournament: 'UEFA Champions League',
+    roundOrStage: 'League Phase Clash',
+    date: '2026-11-26',
+    time: '21:00 CET',
+    venue: 'Allianz Arena',
+    city: 'Munich',
+    country: 'Germany',
+    importanceScore: 97,
+    headline: 'Heavyweight Knockout Tension: Kompany High-Press Bayern vs Enrique Fluid PSG',
+    homeTeam: {
+      id: 'team-bay-ucl',
+      name: 'Bayern Munich',
+      shortName: 'BAY',
+      logo: 'https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=128&auto=format&fit=crop&q=80',
+      primaryColor: '#DC052D',
+      secondaryColor: '#FFFFFF',
+      league: 'UEFA Champions League (10th)',
+      ranking: '#3 UEFA Club Ranking',
+      recentForm: ['W', 'W', 'W', 'W', 'W'],
+      recordSummary: '15W - 2D - 2L (Home: 9W - 1D - 0L)',
+      tacticalStyle: 'Relentless territorial counter-press, Musiala central-pocket overload, Kane finishing',
+      coach: 'Vincent Kompany',
+      keyPlayers: [
+        {
+          id: 'ucl-bay-kane',
+          name: 'Harry Kane',
+          position: 'Striker',
+          number: 9,
+          avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80',
+          nationality: 'England',
+          form: ['W', 'W', 'W', 'W', 'W'],
+          rating: 9.2,
+          keyMetrics: { 'UCL Goals': 7, 'Shot Conversion': '31.4%', 'Key Passes / 90': 2.1 },
+          radarStats: { attack: 97, defense: 50, clutch: 94, consistency: 96, stamina: 88, tactical: 95 },
+          injuryStatus: 'healthy',
+          recentPerformances: [{ opponent: 'Augsburg', score: '3-0', statSummary: 'Hat-trick (3 Goals)', rating: 9.8, date: '2026-11-22' }],
+          historicalNotes: 'Lethal from 18 yards and elite link-up play dropping between center-backs.'
+        }
+      ]
+    },
+    awayTeam: {
+      id: 'team-psg-ucl',
+      name: 'Paris Saint-Germain',
+      shortName: 'PSG',
+      logo: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=128&auto=format&fit=crop&q=80',
+      primaryColor: '#004170',
+      secondaryColor: '#DA291C',
+      league: 'UEFA Champions League (16th)',
+      ranking: '#5 UEFA Club Ranking',
+      recentForm: ['W', 'W', 'L', 'W', 'D'],
+      recordSummary: '13W - 4D - 3L (Away: 6W - 2D - 2L)',
+      tacticalStyle: 'Fluid possession rotation, wide winger isolation via Dembélé & Barcola',
+      coach: 'Luis Enrique',
+      keyPlayers: [
+        {
+          id: 'ucl-psg-dembele',
+          name: 'Ousmane Dembélé',
+          position: 'Right Winger',
+          number: 10,
+          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+          nationality: 'France',
+          form: ['W', 'W', 'L', 'W', 'D'],
+          rating: 8.7,
+          keyMetrics: { 'Progressive Carries / 90': 7.8, 'Take-ons Won': '64%', 'Chances Created': 34 },
+          radarStats: { attack: 92, defense: 46, clutch: 85, consistency: 83, stamina: 88, tactical: 86 },
+          injuryStatus: 'healthy',
+          recentPerformances: [{ opponent: 'Toulouse', score: '3-0', statSummary: '1 Assist, 7 Dribbles', rating: 8.6, date: '2026-11-22' }],
+          historicalNotes: 'Two-footed unpredictable ball carrier who stretches compact back fours.'
+        }
+      ]
+    },
+    headToHead: {
+      totalPlayed: 13,
+      homeWins: 7,
+      awayWins: 6,
+      draws: 0,
+      lastMeetings: [
+        { date: '2023-03-08', homeScore: 2, awayScore: 0, winner: 'home', competition: 'UEFA Champions League R16', topPerformer: 'Choupo-Moting' }
+      ]
+    }
+  },
+  {
+    id: 'm-uel-tot-rom',
+    sport: 'football',
+    tournament: 'UEFA Europa League',
+    roundOrStage: 'League Phase Matchday 5',
+    date: '2026-11-28',
+    time: '20:00 GMT',
+    venue: 'Tottenham Hotspur Stadium',
+    city: 'London',
+    country: 'England',
+    importanceScore: 93,
+    headline: 'Europa League Heavyweight Showdown: Postecoglou High-Octane Attack vs AS Roma Tactical Grit',
+    homeTeam: {
+      id: 'team-tot-uel',
+      name: 'Tottenham Hotspur',
+      shortName: 'TOT',
+      logo: 'https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=128&auto=format&fit=crop&q=80',
+      primaryColor: '#132257',
+      secondaryColor: '#FFFFFF',
+      league: 'UEFA Europa League (4th)',
+      ranking: '#14 UEFA Club Ranking',
+      recentForm: ['W', 'L', 'W', 'W', 'L'],
+      recordSummary: '11W - 2D - 5L (Home: 7W - 0D - 2L)',
+      tacticalStyle: 'Ultra-aggressive high defensive line, inverted fullbacks, relentless wave attacks',
+      coach: 'Ange Postecoglou',
+      keyPlayers: [
+        {
+          id: 'uel-tot-son',
+          name: 'Son Heung-min',
+          position: 'Left Forward',
+          number: 7,
+          avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80',
+          nationality: 'South Korea',
+          form: ['W', 'L', 'W', 'W', 'L'],
+          rating: 8.8,
+          keyMetrics: { 'xG Overperformance': '+3.9', 'Goals + Assists': 14, 'Sprint Burst': '94%' },
+          radarStats: { attack: 93, defense: 48, clutch: 92, consistency: 89, stamina: 90, tactical: 88 },
+          injuryStatus: 'healthy',
+          recentPerformances: [{ opponent: 'Man City', score: '4-0', statSummary: '1 Assist, Lethal Transition', rating: 8.9, date: '2026-11-23' }],
+          historicalNotes: 'Clinical two-footed finisher thriving in North London European nights.'
+        }
+      ]
+    },
+    awayTeam: {
+      id: 'team-rom-uel',
+      name: 'AS Roma',
+      shortName: 'ROM',
+      logo: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=128&auto=format&fit=crop&q=80',
+      primaryColor: '#8E1F2F',
+      secondaryColor: '#F0BC42',
+      league: 'UEFA Europa League (18th)',
+      ranking: '#9 UEFA Club Ranking',
+      recentForm: ['L', 'D', 'L', 'W', 'L'],
+      recordSummary: '7W - 5D - 7L (Away: 2W - 3D - 4L)',
+      tacticalStyle: 'Mid-block 3-4-2-1 structure relying on Dybala creativity and set-piece aerial battles',
+      coach: 'Claudio Ranieri',
+      keyPlayers: [
+        {
+          id: 'uel-rom-dybala',
+          name: 'Paulo Dybala',
+          position: 'Attacking Midfielder',
+          number: 21,
+          avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+          nationality: 'Argentina',
+          form: ['L', 'D', 'L', 'W', 'L'],
+          rating: 8.5,
+          keyMetrics: { 'Key Passes / 90': 3.0, 'Dribble Success': '66%', 'Dead-ball Accuracy': '91%' },
+          radarStats: { attack: 89, defense: 40, clutch: 88, consistency: 82, stamina: 76, tactical: 92 },
+          injuryStatus: 'minor_knock',
+          recentPerformances: [{ opponent: 'Napoli', score: '0-1', statSummary: '2 Chances Created in tight space', rating: 7.7, date: '2026-11-24' }],
+          historicalNotes: 'Primary creative spark unlocking compact defenses via half-space passes.'
+        }
+      ]
+    },
+    headToHead: {
+      totalPlayed: 2,
+      homeWins: 1,
+      awayWins: 1,
+      draws: 0,
+      lastMeetings: [
+        { date: '2022-07-30', homeScore: 0, awayScore: 1, winner: 'away', competition: 'International Showcase', topPerformer: 'Paulo Dybala' }
+      ]
+    }
+  },
+  {
+    id: 'm-uel-mun-fen',
+    sport: 'football',
+    tournament: 'UEFA Europa League',
+    roundOrStage: 'League Phase Primetime',
+    date: '2026-11-28',
+    time: '20:00 GMT',
+    venue: 'Old Trafford',
+    city: 'Manchester',
+    country: 'England',
+    importanceScore: 92,
+    headline: 'Europa League Grudge Tie: Amorim Resurgent Man United vs Mourinho Tactical Fortress',
+    homeTeam: {
+      id: 'team-mun-uel',
+      name: 'Manchester United',
+      shortName: 'MUN',
+      logo: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=128&auto=format&fit=crop&q=80',
+      primaryColor: '#DA291C',
+      secondaryColor: '#FBE122',
+      league: 'UEFA Europa League (7th)',
+      ranking: '#11 UEFA Club Ranking',
+      recentForm: ['W', 'W', 'D', 'W', 'W'],
+      recordSummary: '11W - 5D - 4L (Home: 7W - 2D - 1L)',
+      tacticalStyle: '3-4-2-1 high-tempo wing-back overlaps and quick vertical switches through Bruno Fernandes',
+      coach: 'Ruben Amorim',
+      keyPlayers: [
+        {
+          id: 'uel-mun-bruno',
+          name: 'Bruno Fernandes',
+          position: 'Attacking Midfielder',
+          number: 8,
+          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+          nationality: 'Portugal',
+          form: ['W', 'W', 'D', 'W', 'W'],
+          rating: 8.8,
+          keyMetrics: { 'Big Chances Created': 15, 'Through Balls / 90': 2.4, 'Distance (km)': 11.6 },
+          radarStats: { attack: 90, defense: 67, clutch: 90, consistency: 89, stamina: 96, tactical: 92 },
+          injuryStatus: 'healthy',
+          recentPerformances: [{ opponent: 'PAOK', score: '2-0', statSummary: '1 Assist, 6 Key Passes', rating: 8.7, date: '2026-11-07' }],
+          historicalNotes: 'Leads Europa League in progressive passes into the penalty area.'
+        }
+      ]
+    },
+    awayTeam: {
+      id: 'team-fen-uel',
+      name: 'Fenerbahçe',
+      shortName: 'FEN',
+      logo: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=128&auto=format&fit=crop&q=80',
+      primaryColor: '#FFED00',
+      secondaryColor: '#00205B',
+      league: 'UEFA Europa League (15th)',
+      ranking: '#28 UEFA Club Ranking',
+      recentForm: ['W', 'D', 'W', 'W', 'L'],
+      recordSummary: '12W - 4D - 3L (Away: 5W - 3D - 2L)',
+      tacticalStyle: 'Disciplined mid-low block transition with physical target strikers and experienced midfielders',
+      coach: 'José Mourinho',
+      keyPlayers: [
+        {
+          id: 'uel-fen-tadic',
+          name: 'Dušan Tadić',
+          position: 'Playmaker / Winger',
+          number: 10,
+          avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80',
+          nationality: 'Serbia',
+          form: ['W', 'D', 'W', 'W', 'L'],
+          rating: 8.4,
+          keyMetrics: { 'Assists (All)': 11, 'Pass Accuracy Final 3rd': '84.5%', 'Clutch Set Pieces': 6 },
+          radarStats: { attack: 85, defense: 49, clutch: 87, consistency: 90, stamina: 81, tactical: 93 },
+          injuryStatus: 'healthy',
+          recentPerformances: [{ opponent: 'AZ Alkmaar', score: '1-3', statSummary: '4 Key Passes, 1 Big Chance Created', rating: 7.9, date: '2026-11-07' }],
+          historicalNotes: 'Crafty veteran creator capable of unlocking compact high lines with pinpoint crosses.'
+        }
+      ]
+    },
+    headToHead: {
+      totalPlayed: 7,
+      homeWins: 3,
+      awayWins: 3,
+      draws: 1,
+      lastMeetings: [
+        { date: '2024-10-24', homeScore: 1, awayScore: 1, winner: 'draw', competition: 'UEFA Europa League', topPerformer: 'André Onana' }
+      ]
+    }
+  },
+  {
+    id: 'm-uecl-che-fio',
+    sport: 'football',
+    tournament: 'UEFA Conference League',
+    roundOrStage: 'League Phase Marquee Tie',
+    date: '2026-11-28',
+    time: '20:00 GMT',
+    venue: 'Stamford Bridge',
+    city: 'London',
+    country: 'England',
+    importanceScore: 90,
+    headline: 'Conference League Title Favorites Clash: Chelsea Firepower vs Viola High-Tempo Press',
+    homeTeam: {
+      id: 'team-che-uecl',
+      name: 'Chelsea',
+      shortName: 'CHE',
+      logo: 'https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=128&auto=format&fit=crop&q=80',
+      primaryColor: '#034694',
+      secondaryColor: '#FFFFFF',
+      league: 'UEFA Conference League (1st)',
+      ranking: '#8 UEFA Club Ranking',
+      recentForm: ['W', 'W', 'D', 'W', 'W'],
+      recordSummary: '14W - 4D - 2L (UECL: 4W - 0D - 0L)',
+      tacticalStyle: 'Expansive inverted-wing possession, Cole Palmer half-space orchestration, high xG output',
+      coach: 'Enzo Maresca',
+      keyPlayers: [
+        {
+          id: 'uecl-che-palmer',
+          name: 'Cole Palmer',
+          position: 'Attacking Midfielder',
+          number: 20,
+          avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+          nationality: 'England',
+          form: ['W', 'W', 'D', 'W', 'W'],
+          rating: 9.0,
+          keyMetrics: { 'Goal Contributions': 19, 'Penalty Conversion': '100%', 'Chances / 90': 3.4 },
+          radarStats: { attack: 94, defense: 51, clutch: 95, consistency: 92, stamina: 88, tactical: 94 },
+          injuryStatus: 'healthy',
+          recentPerformances: [{ opponent: 'Leicester', score: '2-1', statSummary: '4 Key Passes, High Tempo', rating: 8.6, date: '2026-11-23' }],
+          historicalNotes: 'Unrivaled creative fulcrum turning Conference League matches into attacking clinics.'
+        }
+      ]
+    },
+    awayTeam: {
+      id: 'team-fio-uecl',
+      name: 'Fiorentina',
+      shortName: 'FIO',
+      logo: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=128&auto=format&fit=crop&q=80',
+      primaryColor: '#482E92',
+      secondaryColor: '#FFFFFF',
+      league: 'UEFA Conference League (3rd)',
+      ranking: '#24 UEFA Club Ranking',
+      recentForm: ['W', 'W', 'W', 'W', 'W'],
+      recordSummary: '13W - 4D - 2L (Serie A & UECL surging)',
+      tacticalStyle: 'Aggressive man-oriented press, swift counter-transitions through Moise Kean',
+      coach: 'Raffaele Palladino',
+      keyPlayers: [
+        {
+          id: 'uecl-fio-kean',
+          name: 'Moise Kean',
+          position: 'Striker',
+          number: 20,
+          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+          nationality: 'Italy',
+          form: ['W', 'W', 'W', 'W', 'W'],
+          rating: 8.6,
+          keyMetrics: { 'Goals (All)': 12, 'Aerial Duels Won %': '62%', 'xG / 90': 0.72 },
+          radarStats: { attack: 89, defense: 45, clutch: 86, consistency: 87, stamina: 90, tactical: 84 },
+          injuryStatus: 'healthy',
+          recentPerformances: [{ opponent: 'Verona', score: '3-1', statSummary: 'Hat-trick (3 Goals)', rating: 9.6, date: '2026-11-10' }],
+          historicalNotes: 'In career-best goalscoring form driving Fiorentina to back-to-back Conference League contention.'
+        }
+      ]
+    },
+    headToHead: {
+      totalPlayed: 2,
+      homeWins: 1,
+      awayWins: 0,
+      draws: 1,
+      lastMeetings: [
+        { date: '2015-08-05', homeScore: 0, awayScore: 1, winner: 'away', competition: 'Pre-Season', topPerformer: 'Gonzalo Rodríguez' }
+      ]
+    }
+  },
+  {
+    id: 'm-uecl-bet-pan',
+    sport: 'football',
+    tournament: 'UEFA Conference League',
+    roundOrStage: 'League Phase Matchday 5',
+    date: '2026-11-29',
+    time: '18:45 CET',
+    venue: 'Estadio Benito Villamarín',
+    city: 'Seville',
+    country: 'Spain',
+    importanceScore: 86,
+    headline: 'Conference League Contender Test: Real Betis Possession Craft vs Panathinaikos Counter Surge',
+    homeTeam: {
+      id: 'team-bet-uecl',
+      name: 'Real Betis',
+      shortName: 'BET',
+      logo: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=128&auto=format&fit=crop&q=80',
+      primaryColor: '#0BB363',
+      secondaryColor: '#FFFFFF',
+      league: 'UEFA Conference League (14th)',
+      ranking: '#32 UEFA Club Ranking',
+      recentForm: ['W', 'D', 'W', 'L', 'W'],
+      recordSummary: '9W - 5D - 5L (Home: 6W - 2D - 1L)',
+      tacticalStyle: 'Technical 4-2-3-1 ball progression, Lo Celso pockets, disciplined home atmosphere',
+      coach: 'Manuel Pellegrini',
+      keyPlayers: [
+        {
+          id: 'uecl-bet-locelso',
+          name: 'Giovani Lo Celso',
+          position: 'Attacking Midfielder',
+          number: 20,
+          avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80',
+          nationality: 'Argentina',
+          form: ['W', 'D', 'W', 'L', 'W'],
+          rating: 8.5,
+          keyMetrics: { 'Goals': 7, 'Progressive Passes / 90': 8.9, 'Key Passes': 29 },
+          radarStats: { attack: 87, defense: 59, clutch: 85, consistency: 86, stamina: 84, tactical: 91 },
+          injuryStatus: 'healthy',
+          recentPerformances: [{ opponent: 'Celje', score: '2-1', statSummary: '1 Goal, 5 Chances Created', rating: 8.7, date: '2026-11-07' }],
+          historicalNotes: 'Betis tempo setter excelling against mid-block European opposition.'
+        }
+      ]
+    },
+    awayTeam: {
+      id: 'team-pan-uecl',
+      name: 'Panathinaikos',
+      shortName: 'PAO',
+      logo: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=128&auto=format&fit=crop&q=80',
+      primaryColor: '#007A33',
+      secondaryColor: '#FFFFFF',
+      league: 'UEFA Conference League (21st)',
+      ranking: '#54 UEFA Club Ranking',
+      recentForm: ['W', 'W', 'D', 'L', 'W'],
+      recordSummary: '10W - 4D - 4L (Away: 4W - 2D - 3L)',
+      tacticalStyle: 'Compact mid-block 4-3-3 transitioning rapidly through Tetê & Ioannidis',
+      coach: 'Rui Vitória',
+      keyPlayers: [
+        {
+          id: 'uecl-pan-ioannidis',
+          name: 'Fotis Ioannidis',
+          position: 'Striker',
+          number: 7,
+          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+          nationality: 'Greece',
+          form: ['W', 'W', 'D', 'L', 'W'],
+          rating: 8.2,
+          keyMetrics: { 'Hold-up Duels Won': '61%', 'xG / 90': 0.56, 'Shots on Target %': '52%' },
+          radarStats: { attack: 85, defense: 47, clutch: 84, consistency: 83, stamina: 88, tactical: 82 },
+          injuryStatus: 'healthy',
+          recentPerformances: [{ opponent: 'Chelsea', score: '1-4', statSummary: '4 Aerial Wins, 1 Big Chance', rating: 7.5, date: '2026-10-24' }],
+          historicalNotes: 'Physical focal point carrying Panathinaikos threat on the break.'
+        }
+      ]
+    },
+    headToHead: {
+      totalPlayed: 2,
+      homeWins: 1,
+      awayWins: 0,
+      draws: 1,
+      lastMeetings: [
+        { date: '2024-08-01', homeScore: 1, awayScore: 1, winner: 'draw', competition: 'UEFA Friendly', topPerformer: 'Lo Celso' }
+      ]
+    }
+  },
+  {
+    id: 'm-unl-fra-ita',
+    sport: 'football',
+    tournament: 'UEFA Nations League',
+    roundOrStage: 'League A Quarter-Final Clash',
+    date: '2026-11-30',
+    time: '20:45 CET',
+    venue: 'Stade de France',
+    city: 'Paris',
+    country: 'France',
+    importanceScore: 95,
+    headline: 'UEFA Nations League Titans: Les Bleus Pace & Power vs Spalletti Resurgent Azzurri',
+    homeTeam: {
+      id: 'team-fra-unl',
+      name: 'France',
+      shortName: 'FRA',
+      logo: 'https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=128&auto=format&fit=crop&q=80',
+      primaryColor: '#002395',
+      secondaryColor: '#ED2939',
+      league: 'UEFA Nations League A (1st)',
+      ranking: '#2 FIFA / UEFA Ranking',
+      recentForm: ['W', 'W', 'W', 'D', 'W'],
+      recordSummary: '5W - 1D - 1L (Nations League Group A2 Winners)',
+      tacticalStyle: 'Midfield physicality with Rabiot/Koné, explosive transitions via Thuram, Dembélé & Olise',
+      coach: 'Didier Deschamps',
+      keyPlayers: [
+        {
+          id: 'unl-fra-olise',
+          name: 'Michael Olise',
+          position: 'Attacking Midfielder',
+          number: 7,
+          avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+          nationality: 'France',
+          form: ['W', 'W', 'W', 'D', 'W'],
+          rating: 8.8,
+          keyMetrics: { 'Key Passes / 90': 3.3, 'Set-Piece Assists': 4, 'Dribble Success': '67%' },
+          radarStats: { attack: 91, defense: 58, clutch: 88, consistency: 89, stamina: 87, tactical: 91 },
+          injuryStatus: 'healthy',
+          recentPerformances: [{ opponent: 'Italy', score: '3-1', statSummary: '3 Assists / Direct Free-Kick Impact', rating: 8.9, date: '2026-11-17' }],
+          historicalNotes: 'Creative left-footed specialist driving France set-piece dominance.'
+        }
+      ]
+    },
+    awayTeam: {
+      id: 'team-ita-unl',
+      name: 'Italy',
+      shortName: 'ITA',
+      logo: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=128&auto=format&fit=crop&q=80',
+      primaryColor: '#0066CC',
+      secondaryColor: '#FFFFFF',
+      league: 'UEFA Nations League A (2nd)',
+      ranking: '#9 FIFA / UEFA Ranking',
+      recentForm: ['L', 'W', 'W', 'D', 'W'],
+      recordSummary: '4W - 1D - 1L (Away: 3W - 0D - 0L)',
+      tacticalStyle: '3-5-1-1 dynamic midfield overload via Barella, Tonali & Dimarco wing-back surges',
+      coach: 'Luciano Spalletti',
+      keyPlayers: [
+        {
+          id: 'unl-ita-barella',
+          name: 'Nicolò Barella',
+          position: 'Central Midfielder',
+          number: 18,
+          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+          nationality: 'Italy',
+          form: ['L', 'W', 'W', 'D', 'W'],
+          rating: 8.7,
+          keyMetrics: { 'Ball Recoveries / 90': 7.4, 'Progressive Carries': 5.8, 'Pass Accuracy': '90.4%' },
+          radarStats: { attack: 83, defense: 82, clutch: 89, consistency: 91, stamina: 96, tactical: 93 },
+          injuryStatus: 'healthy',
+          recentPerformances: [{ opponent: 'Belgium', score: '1-0', statSummary: 'Controlled midfield tempo, 92% passing', rating: 8.6, date: '2026-11-14' }],
+          historicalNotes: 'Tireless engine dictating Italy transition tempo and pressing intensity.'
+        }
+      ]
+    },
+    headToHead: {
+      totalPlayed: 41,
+      homeWins: 13,
+      awayWins: 19,
+      draws: 9,
+      lastMeetings: [
+        { date: '2026-11-17', homeScore: 1, awayScore: 3, winner: 'home', competition: 'UEFA Nations League Group A2', topPerformer: 'Adrien Rabiot' }
+      ]
+    }
+  },
+  {
+    id: 'm-unl-esp-por',
+    sport: 'football',
+    tournament: 'UEFA Nations League',
+    roundOrStage: 'Iberian Derby Quarter-Final',
+    date: '2026-12-01',
+    time: '20:45 CET',
+    venue: 'Estadio Santiago Bernabéu',
+    city: 'Madrid',
+    country: 'Spain',
+    importanceScore: 96,
+    headline: 'Iberian Nations League Epic: Euro Champions Spain vs Ronaldo & Bruno Portugal',
+    homeTeam: {
+      id: 'team-esp-unl',
+      name: 'Spain',
+      shortName: 'ESP',
+      logo: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=128&auto=format&fit=crop&q=80',
+      primaryColor: '#AA151B',
+      secondaryColor: '#F1BF00',
+      league: 'UEFA Nations League A (1st)',
+      ranking: '#3 FIFA / UEFA Ranking',
+      recentForm: ['W', 'W', 'W', 'W', 'W'],
+      recordSummary: '11W - 1D - 0L (Unbeaten Champions Streak)',
+      tacticalStyle: 'Relentless technical possession, Lamine Yamal & Nico Williams inverted wing devastation',
+      coach: 'Luis de la Fuente',
+      keyPlayers: [
+        {
+          id: 'unl-esp-yamal',
+          name: 'Lamine Yamal',
+          position: 'Right Winger',
+          number: 19,
+          avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80',
+          nationality: 'Spain',
+          form: ['W', 'W', 'W', 'W', 'W'],
+          rating: 9.1,
+          keyMetrics: { 'Big Chances Created': 14, 'Take-ons Won %': '68%', 'Assists (Int)': 9 },
+          radarStats: { attack: 95, defense: 50, clutch: 93, consistency: 91, stamina: 88, tactical: 94 },
+          injuryStatus: 'healthy',
+          recentPerformances: [{ opponent: 'Switzerland', score: '3-2', statSummary: '5 Key Passes, 6 Dribbles', rating: 8.9, date: '2026-11-18' }],
+          historicalNotes: 'Most creative wide threat in European international football.'
+        }
+      ]
+    },
+    awayTeam: {
+      id: 'team-por-unl',
+      name: 'Portugal',
+      shortName: 'POR',
+      logo: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=128&auto=format&fit=crop&q=80',
+      primaryColor: '#006600',
+      secondaryColor: '#FF0000',
+      league: 'UEFA Nations League A (1st Group A1)',
+      ranking: '#6 FIFA / UEFA Ranking',
+      recentForm: ['D', 'W', 'D', 'W', 'W'],
+      recordSummary: '4W - 2D - 0L (Group A1 Unbeaten)',
+      tacticalStyle: 'Technical Vitinha-Bruno ball control feeding Rafael Leão & Ronaldo inside the box',
+      coach: 'Roberto Martínez',
+      keyPlayers: [
+        {
+          id: 'unl-por-leao',
+          name: 'Rafael Leão',
+          position: 'Left Winger',
+          number: 17,
+          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+          nationality: 'Portugal',
+          form: ['D', 'W', 'D', 'W', 'W'],
+          rating: 8.7,
+          keyMetrics: { 'Sprint Speed (km/h)': 36.1, 'Progressive Carries': 7.5, 'Goals + Assists': 8 },
+          radarStats: { attack: 92, defense: 39, clutch: 86, consistency: 84, stamina: 89, tactical: 84 },
+          injuryStatus: 'healthy',
+          recentPerformances: [{ opponent: 'Poland', score: '5-1', statSummary: '1 Goal, 1 Assist, 7 Dribbles', rating: 9.0, date: '2026-11-15' }],
+          historicalNotes: 'Explosive left-flank ball carrier testing opposing right-backs relentlessly.'
+        }
+      ]
+    },
+    headToHead: {
+      totalPlayed: 40,
+      homeWins: 17,
+      awayWins: 6,
+      draws: 17,
+      lastMeetings: [
+        { date: '2022-09-27', homeScore: 0, awayScore: 1, winner: 'home', competition: 'UEFA Nations League', topPerformer: 'Álvaro Morata' }
+      ]
+    }
   }
 ];
 

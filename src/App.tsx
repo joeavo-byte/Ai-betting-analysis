@@ -451,11 +451,13 @@ export default function App() {
 
   // Live search or dynamically generate a custom match query
   const handleLiveSearchOrGenerate = async (queryToSearch: string) => {
-    if (!queryToSearch.trim()) return;
-    showToast(`⚡ Searching sports intelligence & compiling match for "${queryToSearch}"...`);
-    const res = await handleFetchUpcoming('all', queryToSearch);
+    const clean = queryToSearch.trim();
+    if (!clean) return;
+    setSelectedLeague('all');
+    showToast(`⚡ Searching live fixture dates for "${clean}"...`);
+    const res = await handleFetchUpcoming(selectedSport || 'all', clean);
     if (res.success) {
-      showToast(`Matches synced for "${queryToSearch}"!`);
+      showToast(res.message || `Matches synced for "${clean}"!`);
     } else {
       showToast(res.message || 'Could not fetch match.');
     }
@@ -479,7 +481,11 @@ export default function App() {
             awayLeague.includes(lq) ||
             tournament.includes(lq) ||
             (lq === 'premier league' && (tournament.includes('premier') || homeLeague.includes('premier') || tournament.includes('epl'))) ||
+            (lq === 'uefa' && (tournament.includes('uefa') || tournament.includes('champions') || tournament.includes('europa') || tournament.includes('conference') || tournament.includes('nations'))) ||
             (lq === 'champions league' && (tournament.includes('champions') || tournament.includes('ucl'))) ||
+            (lq === 'europa league' && (tournament.includes('europa league') || tournament.includes('uel'))) ||
+            (lq === 'conference league' && (tournament.includes('conference league') || tournament.includes('uecl'))) ||
+            (lq === 'nations league' && (tournament.includes('nations league') || tournament.includes('unl'))) ||
             (lq === 'la liga' && (tournament.includes('la liga') || homeLeague.includes('la liga'))) ||
             (lq === 'serie a' && (tournament.includes('serie a') || homeLeague.includes('serie a'))) ||
             (lq === 'bundesliga' && (tournament.includes('bundesliga') || homeLeague.includes('bundesliga'))) ||
@@ -520,6 +526,10 @@ export default function App() {
           ...m.awayTeam.keyPlayers.map((p) => p.name.toLowerCase()),
         ].some((pName) => pName.includes(q));
 
+        const matchupForward = `${homeName} vs ${awayName}`;
+        const matchupReverse = `${awayName} vs ${homeName}`;
+        const matchupSpace = `${homeName} ${awayName}`;
+
         return (
           homeName.includes(q) ||
           homeShort.includes(q) ||
@@ -529,6 +539,9 @@ export default function App() {
           awayShort.includes(q) ||
           awayLeague.includes(q) ||
           awayCoach.includes(q) ||
+          matchupForward.includes(q) ||
+          matchupReverse.includes(q) ||
+          matchupSpace.includes(q) ||
           tournament.includes(q) ||
           round.includes(q) ||
           sportName.includes(q) ||
@@ -748,28 +761,40 @@ export default function App() {
         {/* Filter, Search & Controls Bar */}
         <section className="bg-[#EAE5DD] dark:bg-slate-900/60 p-4 rounded-2xl border border-stone-300/80 dark:border-slate-800 space-y-3 shadow-xs">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div className="relative w-full sm:w-96">
-              <Search className="w-4 h-4 text-stone-500 dark:text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleLiveSearchOrGenerate(searchQuery);
-                  }
-                }}
-                placeholder="Search any team (Arsenal, Inter...), league (Serie A...), or player..."
-                className="w-full bg-[#DFD9CE] dark:bg-slate-950 border border-stone-300 dark:border-slate-800 rounded-xl pl-9 pr-9 py-2.5 text-xs text-stone-900 dark:text-slate-100 placeholder-stone-500 dark:placeholder-slate-500 focus:outline-none focus:border-emerald-700 focus:bg-[#E8E2D7] dark:focus:border-emerald-500"
-              />
-              {searchQuery && (
+            <div className="flex items-center gap-2 w-full sm:w-auto sm:min-w-[420px]">
+              <div className="relative flex-1">
+                <Search className="w-4 h-4 text-stone-500 dark:text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleLiveSearchOrGenerate(searchQuery);
+                    }
+                  }}
+                  placeholder="Search team (Arsenal vs Chelsea...), league, or player..."
+                  className="w-full bg-[#DFD9CE] dark:bg-slate-950 border border-stone-300 dark:border-slate-800 rounded-xl pl-9 pr-9 py-2.5 text-xs text-stone-900 dark:text-slate-100 placeholder-stone-500 dark:placeholder-slate-500 focus:outline-none focus:border-emerald-700 focus:bg-[#E8E2D7] dark:focus:border-emerald-500"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-500 hover:text-stone-800 dark:text-slate-500 dark:hover:text-slate-300 p-0.5 rounded cursor-pointer"
+                    title="Clear search"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+              {searchQuery.trim() && (
                 <button
                   type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-500 hover:text-stone-800 dark:text-slate-500 dark:hover:text-slate-300 p-0.5 rounded cursor-pointer"
-                  title="Clear search"
+                  onClick={() => handleLiveSearchOrGenerate(searchQuery)}
+                  className="shrink-0 px-3 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white dark:bg-emerald-500 dark:hover:bg-emerald-400 dark:text-slate-950 font-bold text-xs transition-all cursor-pointer shadow-xs whitespace-nowrap"
+                  title="Search live upcoming schedule via Google Search"
                 >
-                  <X className="w-3.5 h-3.5" />
+                  Find Live
                 </button>
               )}
             </div>
@@ -809,8 +834,12 @@ export default function App() {
             </span>
             {[
               { id: 'all', label: 'All Leagues' },
-              { id: 'premier league', label: '🇬🇧 Premier League' },
+              { id: 'uefa', label: '🇪🇺 All UEFA' },
               { id: 'champions league', label: '🏆 Champions League' },
+              { id: 'europa league', label: '🟠 Europa League' },
+              { id: 'conference league', label: '🟢 Conference League' },
+              { id: 'nations league', label: '🌍 Nations League' },
+              { id: 'premier league', label: '🇬🇧 Premier League' },
               { id: 'la liga', label: '🇪🇸 La Liga' },
               { id: 'serie a', label: '🇮🇹 Serie A' },
               { id: 'bundesliga', label: '🇩🇪 Bundesliga' },

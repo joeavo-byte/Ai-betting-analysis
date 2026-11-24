@@ -64,8 +64,11 @@ export const FetchUpcomingModal: React.FC<FetchUpcomingModalProps> = ({
   };
 
   const leaguePresets = [
+    { label: '🏆 UEFA Champions League', sport: 'football', query: 'UEFA Champions League' },
+    { label: '🟠 UEFA Europa League', sport: 'football', query: 'UEFA Europa League' },
+    { label: '🟢 UEFA Conference League', sport: 'football', query: 'UEFA Conference League' },
+    { label: '🌍 UEFA Nations League', sport: 'football', query: 'UEFA Nations League' },
     { label: '🇬🇧 Premier League Showdowns', sport: 'football', query: 'Premier League' },
-    { label: '🏆 UEFA Champions League', sport: 'football', query: 'Champions League' },
     { label: '🇪🇸 Spanish La Liga / El Clásico', sport: 'football', query: 'La Liga' },
     { label: '🇮🇹 Italian Serie A Derbies', sport: 'football', query: 'Serie A' },
     { label: '🇩🇪 German Bundesliga / Der Klassiker', sport: 'football', query: 'Bundesliga' },
