@@ -466,9 +466,9 @@ let activeAdminTokens = new Set<string>();
 // POST /api/admin/login - Authenticate admin with password
 app.post('/api/admin/login', (req, res) => {
   const submitted = (req.body.password !== undefined ? req.body.password : req.body.pin || '').toString().trim();
-  const isValid = submitted && (submitted === adminPassword.trim() || submitted === 'admin1234');
+  const isValid = Boolean(submitted && submitted === adminPassword.trim());
   if (!isValid) {
-    return res.status(401).json({ success: false, error: 'Incorrect Admin Password. (Default: admin1234)' });
+    return res.status(401).json({ success: false, error: 'Incorrect admin password. Please try again.' });
   }
 
   const token = 'adm_token_' + Math.random().toString(36).substring(2, 12) + '_' + Date.now();

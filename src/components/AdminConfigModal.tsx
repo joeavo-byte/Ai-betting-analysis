@@ -101,7 +101,7 @@ export const AdminConfigModal: React.FC<AdminConfigModalProps> = ({
         onAdminAuthSuccess(data.token);
         setPinInput('');
       } else {
-        setPinError(data.error || 'Invalid Owner PIN. (Default PIN is 8821).');
+        setPinError(data.error || 'Invalid owner passcode. Please try again.');
       }
     } catch (err) {
       setPinError('Connection error. Please try again.');
@@ -224,7 +224,7 @@ export const AdminConfigModal: React.FC<AdminConfigModalProps> = ({
                   type="password"
                   value={pinInput}
                   onChange={(e) => setPinInput(e.target.value)}
-                  placeholder="Enter 4-digit PIN (Default: 8821)"
+                  placeholder="Enter owner passcode"
                   className="w-full bg-stone-50 dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl pl-10 pr-4 py-3 text-sm text-center font-mono tracking-widest text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-slate-500 focus:outline-none focus:border-emerald-500"
                   autoFocus
                 />
@@ -248,7 +248,7 @@ export const AdminConfigModal: React.FC<AdminConfigModalProps> = ({
             </form>
 
             <p className="text-[11px] font-mono text-stone-500 dark:text-slate-500">
-              Default factory PIN is <strong className="text-stone-800 dark:text-slate-300">8821</strong>. You can change this inside once unlocked.
+              Restricted to authorized administrators. You can update your passcode once unlocked.
             </p>
           </div>
         ) : (

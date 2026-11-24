@@ -143,7 +143,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         onAdminAuthSuccess(data.token);
         setPasswordInput('');
       } else {
-        setLoginError(data.error || 'Incorrect Admin Password. (Default password: admin1234)');
+        setLoginError(data.error || 'Incorrect admin password. Please try again.');
       }
     } catch (err) {
       setLoginError('Network connection failed. Please retry.');
@@ -344,11 +344,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
             <div className="p-3.5 rounded-xl bg-[#DFD9CE] dark:bg-slate-950/60 border border-stone-300 dark:border-slate-800 text-[11px] text-stone-700 dark:text-slate-400 space-y-1">
               <div className="font-bold text-stone-900 dark:text-slate-200 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
-                <span>First time logging in?</span>
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
+                <span>Restricted Admin Access</span>
               </div>
               <p>
-                The default master password is <strong className="font-mono text-emerald-800 dark:text-emerald-300">admin1234</strong>. You can change it to any custom password once authenticated.
+                Authorized administrators can update their master password in Security Settings once authenticated.
               </p>
             </div>
           </div>
