@@ -174,7 +174,11 @@ export const MatchCard: React.FC<MatchCardProps> = ({
             </span>
             {prediction?.formAndStrength?.expectedGoals && (
               <span className="mt-1 text-[8.5px] font-mono text-emerald-800 dark:text-emerald-400 font-bold bg-emerald-600/10 dark:bg-emerald-500/10 px-1 py-0.5 rounded border border-emerald-600/20 whitespace-nowrap">
-                xG {prediction.formAndStrength.expectedGoals.home}-{prediction.formAndStrength.expectedGoals.away}
+                {match.sport === 'football'
+                  ? `xG ${prediction.formAndStrength.expectedGoals.home}-${prediction.formAndStrength.expectedGoals.away}`
+                  : match.sport === 'tennis'
+                  ? `Edge ${Math.round(prediction.formAndStrength.expectedGoals.home * 100)}%-${Math.round(prediction.formAndStrength.expectedGoals.away * 100)}%`
+                  : `Pts ${prediction.formAndStrength.expectedGoals.home}-${prediction.formAndStrength.expectedGoals.away}`}
               </span>
             )}
           </div>

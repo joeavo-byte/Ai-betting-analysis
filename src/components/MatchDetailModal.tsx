@@ -82,8 +82,8 @@ export const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
   const [selectedTeamTab, setSelectedTeamTab] = useState<'home' | 'away'>('home');
 
   const { homeTeam, awayTeam, prediction } = match;
-  const homeStrength = homeTeam.strength || calculateTeamStrength(homeTeam, match.sport);
-  const awayStrength = awayTeam.strength || calculateTeamStrength(awayTeam, match.sport);
+  const homeStrength = prediction?.formAndStrength?.homeStrength || homeTeam.strength || calculateTeamStrength(homeTeam, match.sport);
+  const awayStrength = prediction?.formAndStrength?.awayStrength || awayTeam.strength || calculateTeamStrength(awayTeam, match.sport);
 
   const initialPlayer =
     homeTeam?.keyPlayers?.[0] ||
@@ -515,7 +515,26 @@ export const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
                       </p>
                       {prediction.formAndStrength?.expectedGoals && (
                         <div className="pt-1 flex items-center gap-4 text-[11px] font-mono text-stone-700 dark:text-slate-400">
-                          <span>Projected Expected Goals (xG): <strong className="text-stone-900 dark:text-slate-200">{homeTeam.shortName} {prediction.formAndStrength.expectedGoals.home}</strong> vs <strong className="text-stone-900 dark:text-slate-200">{awayTeam.shortName} {prediction.formAndStrength.expectedGoals.away}</strong></span>
+                          <span>
+                            {match.sport === 'football'
+                              ? 'Projected Expected Goals (xG): '
+                              : match.sport === 'tennis'
+                              ? 'Projected Dominance Share: '
+                              : 'Projected Scoring Pace: '}
+                            <strong className="text-stone-900 dark:text-slate-200">
+                              {homeTeam.shortName}{' '}
+                              {match.sport === 'tennis'
+                                ? `${Math.round(prediction.formAndStrength.expectedGoals.home * 100)}%`
+                                : prediction.formAndStrength.expectedGoals.home}
+                            </strong>{' '}
+                            vs{' '}
+                            <strong className="text-stone-900 dark:text-slate-200">
+                              {awayTeam.shortName}{' '}
+                              {match.sport === 'tennis'
+                                ? `${Math.round(prediction.formAndStrength.expectedGoals.away * 100)}%`
+                                : prediction.formAndStrength.expectedGoals.away}
+                            </strong>
+                          </span>
                         </div>
                       )}
                     </div>

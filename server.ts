@@ -6,7 +6,7 @@ import { GoogleGenAI } from '@google/genai';
 import { createServer as createViteServer } from 'vite';
 import { INITIAL_MATCHES, INITIAL_TRACK_RECORD } from './src/data/initialMatches.ts';
 import { EXPANDED_FIXTURE_LIBRARY } from './src/data/fixtureLibrary.ts';
-import { computeStatisticalPrediction } from './src/services/statisticalPredictor.ts';
+import { computeStatisticalPrediction, reconcilePredictionWithQuantEngine } from './src/services/statisticalPredictor.ts';
 import { calculateTeamStrength, compareTeamFormAndStrength } from './src/services/teamStrengthHelper.ts';
 import type { Match, AIPrediction, PredictionTrackRecord } from './src/types.ts';
 
@@ -35,15 +35,9 @@ const initialSeedMap = new Map<string, Match>();
 for (const m of [...INITIAL_MATCHES, ...EXPANDED_FIXTURE_LIBRARY]) {
   const key = `${m.homeTeam.name.toLowerCase()} vs ${m.awayTeam.name.toLowerCase()}`;
   if (!initialSeedMap.has(key)) {
-    if (!m.homeTeam.strength) {
-      m.homeTeam.strength = calculateTeamStrength(m.homeTeam, m.sport);
-    }
-    if (!m.awayTeam.strength) {
-      m.awayTeam.strength = calculateTeamStrength(m.awayTeam, m.sport);
-    }
-    if (!m.prediction || !m.prediction.formAndStrength) {
-      m.prediction = computeStatisticalPrediction(m);
-    }
+    m.homeTeam.strength = calculateTeamStrength(m.homeTeam, m.sport);
+    m.awayTeam.strength = calculateTeamStrength(m.awayTeam, m.sport);
+    m.prediction = computeStatisticalPrediction(m);
     initialSeedMap.set(key, m);
   }
 }
@@ -851,18 +845,20 @@ app.post('/api/predict', async (req, res) => {
       return res.status(404).json({ error: 'Match not found' });
     }
 
-    // 1. Calculate and attach dynamic current form and team strength metrics
-    const homeStrength = calculateTeamStrength(match.homeTeam, match.sport);
-    const awayStrength = calculateTeamStrength(match.awayTeam, match.sport);
-    match.homeTeam.strength = homeStrength;
-    match.awayTeam.strength = awayStrength;
-
+    // 1. Calculate dynamic current form and team strength metrics (respecting absences & modifiers)
     const formAndStrength = compareTeamFormAndStrength(
       match.homeTeam,
       match.awayTeam,
       match.sport,
-      customModifiers
+      customModifiers,
+      match.headToHead
     );
+    const homeStrength = formAndStrength.homeStrength;
+    const awayStrength = formAndStrength.awayStrength;
+    if (!customModifiers) {
+      match.homeTeam.strength = homeStrength;
+      match.awayTeam.strength = awayStrength;
+    }
 
     const homePlayersStr = match.homeTeam.keyPlayers
       .map(
@@ -1023,19 +1019,18 @@ Run your predictive model and return the structured JSON prediction.`;
       }
     }
 
-    // If Gemini failed, quota exhausted, or returned invalid JSON, use the statistical engine
+    // Compute quantitative Poisson/Form Monte Carlo baseline
+    const quantPred = computeStatisticalPrediction(match, customModifiers);
+
+    // If Gemini failed, quota exhausted, or returned invalid JSON, use the quantitative engine directly
     if (!predictionData) {
-      predictionData = computeStatisticalPrediction(match, customModifiers);
+      predictionData = quantPred;
     } else {
-      predictionData.timestamp = new Date().toISOString();
-      predictionData.modelUsed = 'Gemini 3.8 Flash (Dynamic Team Form & Strength Model)';
-      predictionData.formAndStrength = formAndStrength;
-      if (customModifiers) {
-        predictionData.customModifiersApplied = customModifiers;
-      }
+      // Reconcile Gemini's qualitative insight with our calibrated quantitative probabilities & scores
+      predictionData = reconcilePredictionWithQuantEngine(predictionData, quantPred, match, customModifiers);
     }
 
-    // Attach to match
+    // Attach to match (keep a clean prediction without permanently overwriting base strength if What-If applied)
     match.prediction = predictionData;
 
     res.json({ success: true, prediction: predictionData, match });
