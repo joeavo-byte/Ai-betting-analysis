@@ -13,10 +13,12 @@ import {
   Lock,
   ShieldCheck,
   MessageCircle,
-  Zap
+  Zap,
+  Target
 } from 'lucide-react';
 import { Match } from '../types.ts';
 import { calculateTeamStrength } from '../services/teamStrengthHelper.ts';
+import { evaluateValuePick } from '../services/valueEdgeHelper.ts';
 
 interface MatchCardProps {
   match: Match;
@@ -38,6 +40,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({
   const { homeTeam, awayTeam, prediction, headToHead } = match;
   const homeStrength = homeTeam.strength || calculateTeamStrength(homeTeam, match.sport);
   const awayStrength = awayTeam.strength || calculateTeamStrength(awayTeam, match.sport);
+  const valuePick = prediction ? evaluateValuePick(match) : null;
 
   const renderFormPills = (form: ('W' | 'D' | 'L')[]) => {
     return (
@@ -249,13 +252,24 @@ export const MatchCard: React.FC<MatchCardProps> = ({
         {/* AI Prediction Section */}
         {prediction ? (
           <div className="mt-3.5 rounded-xl bg-[#E6EBE6] dark:bg-emerald-950/20 border border-emerald-600/30 p-3 text-xs">
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex flex-wrap items-center justify-between gap-1.5 mb-2">
               <div className="flex items-center gap-1.5 text-emerald-900 dark:text-emerald-400 font-bold font-mono">
                 <Brain className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
                 <span>AI Predicted Winner:</span>
               </div>
-              <div className="flex items-center gap-1 bg-emerald-600/20 dark:bg-emerald-500/20 text-emerald-950 dark:text-emerald-300 px-2 py-0.5 rounded font-mono font-bold text-[11px]">
-                <span>{prediction.confidence}% Conviction</span>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {valuePick?.isValuePick && (
+                  <span
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500/20 text-amber-950 border border-amber-600/40 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-400/40 font-mono font-bold text-[10.5px]"
+                    title={`${valuePick.reason} (${valuePick.sideLabel}: AI ${valuePick.aiProb}% vs Market ${valuePick.marketProb}%)`}
+                  >
+                    <Target className="w-3 h-3 text-amber-800 dark:text-amber-300 shrink-0" />
+                    <span>Value Pick +{valuePick.edgePct}%</span>
+                  </span>
+                )}
+                <div className="flex items-center gap-1 bg-emerald-600/20 dark:bg-emerald-500/20 text-emerald-950 dark:text-emerald-300 px-2 py-0.5 rounded font-mono font-bold text-[11px]">
+                  <span>{prediction.confidence}% Conviction</span>
+                </div>
               </div>
             </div>
 
@@ -297,6 +311,39 @@ export const MatchCard: React.FC<MatchCardProps> = ({
                 />
               </div>
             </div>
+
+            {/* AI vs Generic Market Implied Edge Comparison */}
+            {valuePick && (
+              <div
+                className={`mt-2 px-2.5 py-1.5 rounded-lg border font-mono text-[10px] flex flex-wrap items-center justify-between gap-x-2 gap-y-1 ${
+                  valuePick.isValuePick
+                    ? 'bg-amber-500/15 border-amber-600/35 text-amber-950 dark:bg-amber-500/10 dark:border-amber-400/30 dark:text-amber-200'
+                    : 'bg-[#DFE5DF] border-stone-300/80 text-stone-700 dark:bg-slate-900/50 dark:border-slate-800/80 dark:text-slate-400'
+                }`}
+              >
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <TrendingUp
+                    className={`w-3 h-3 shrink-0 ${
+                      valuePick.isValuePick
+                        ? 'text-amber-800 dark:text-amber-300'
+                        : 'text-stone-500 dark:text-slate-400'
+                    }`}
+                  />
+                  <span className="truncate font-semibold">
+                    {valuePick.isValuePick
+                      ? `${valuePick.sideLabel} Edge: AI ${valuePick.aiProb}% vs Mkt ${valuePick.marketProb}%`
+                      : `Market Implied: ${homeTeam.shortName} ${valuePick.marketProbs.home}%${
+                          valuePick.marketProbs.draw !== undefined ? ` · D ${valuePick.marketProbs.draw}%` : ''
+                        } · ${awayTeam.shortName} ${valuePick.marketProbs.away}%`}
+                  </span>
+                </div>
+                <span className="shrink-0 font-bold tabular-nums">
+                  {valuePick.isValuePick
+                    ? `Fair ${valuePick.fairOdds} vs Mkt ${valuePick.marketOdds}`
+                    : `${valuePick.edgePct >= 0 ? `+${valuePick.edgePct}%` : `${valuePick.edgePct}%`} vs Mkt`}
+                </span>
+              </div>
+            )}
 
             {/* Dynamic Form Momentum Badge */}
             {prediction.formAndStrength?.formClashVerdict && (

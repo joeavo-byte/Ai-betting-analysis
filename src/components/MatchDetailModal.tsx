@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { Match, PlayerStat, AIPrediction } from '../types.ts';
 import { PlayerRadarChart } from './PlayerRadarChart.tsx';
+import { WinProbabilityChart } from './WinProbabilityChart.tsx';
 import { calculateTeamStrength } from '../services/teamStrengthHelper.ts';
 
 interface MatchDetailModalProps {
@@ -538,6 +539,13 @@ export const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
                         </div>
                       )}
                     </div>
+
+                    {/* D3.js Win Probability Evolution Chart (Last 5 Matches) */}
+                    <WinProbabilityChart
+                      match={match}
+                      homeStrength={homeStrength}
+                      awayStrength={awayStrength}
+                    />
                   </div>
 
                   {/* If VIP (or Admin): render full deep forecast details. If NOT VIP: render the VIP lock gate card */}
