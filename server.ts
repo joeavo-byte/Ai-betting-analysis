@@ -141,20 +141,33 @@ function upsertMatchIntoStore(incoming: Match): Match {
       .toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
-      .replace(/\b(fc|cf|sc|afc|sv|fk|eindhoven|rotterdam|amsterdam)\b/g, '')
+      .replace(/\b(club|sv|fk|afc|sc|eindhoven|rotterdam|amsterdam)\b/g, '')
       .replace(/[^a-z0-9\s]/g, '')
+      .replace(/\s+/g, ' ')
       .trim();
 
   const newHome = norm(m.homeTeam.name);
   const newAway = norm(m.awayTeam.name);
 
+  const sameSide = (a: string, b: string) => {
+    if (!a || !b) return false;
+    if (a === b) return true;
+    const minLen = Math.min(a.length, b.length);
+    if (minLen >= 5 && (a.includes(b) || b.includes(a))) {
+      // Avoid matching "paris fc" against "paris saint germain"
+      if ((a.includes('paris fc') && b.includes('saint')) || (b.includes('paris fc') && a.includes('saint'))) {
+        return false;
+      }
+      return true;
+    }
+    return false;
+  };
+
   const existingIdx = matchesStore.findIndex((existing) => {
     if (existing.id === m.id) return true;
     const exHome = norm(existing.homeTeam.name);
     const exAway = norm(existing.awayTeam.name);
-    const homeSame = exHome === newHome || exHome.includes(newHome) || newHome.includes(exHome);
-    const awaySame = exAway === newAway || exAway.includes(newAway) || newAway.includes(exAway);
-    return homeSame && awaySame;
+    return sameSide(exHome, newHome) && sameSide(exAway, newAway);
   });
 
   if (existingIdx >= 0) {
@@ -493,8 +506,37 @@ function getFallbackMatchesForQuery(sport: string, query: string): Match[] {
   });
 }
 
+let initialHydrationDone = false;
+let initialHydrationPromise: Promise<void> | null = null;
+
+function startInitialLiveHydration() {
+  if (initialHydrationPromise) return initialHydrationPromise;
+  initialHydrationPromise = fetchLiveESPNMatches({ sport: 'all', includeNextDays: true, forceRefresh: true })
+    .then((live) => {
+      for (const m of live) {
+        upsertMatchIntoStore(m);
+      }
+      if (live.length > 0) {
+        console.log(`Hydrated ${live.length} live upcoming fixtures across 7-day slate.`);
+      }
+    })
+    .catch((err) => {
+      console.warn('Initial live fixture hydration skipped:', err?.message);
+    })
+    .finally(() => {
+      initialHydrationDone = true;
+    });
+  return initialHydrationPromise;
+}
+
+// Kick off live 7-day hydration immediately on server load
+startInitialLiveHydration();
+
 // GET all matches
-app.get('/api/matches', (req, res) => {
+app.get('/api/matches', async (req, res) => {
+  if (!initialHydrationDone && initialHydrationPromise) {
+    await Promise.race([initialHydrationPromise, new Promise((r) => setTimeout(r, 3500))]);
+  }
   const sport = req.query.sport as string | undefined;
   if (sport && sport !== 'all') {
     return res.json({ matches: matchesStore.filter((m) => m.sport === sport) });
@@ -772,9 +814,9 @@ app.post('/api/matches/sync-all', async (_req, res) => {
   }
   matchesStore = Array.from(seedMap.values());
 
-  // Also merge live today/upcoming fixtures from ESPN
+  // Also merge live 7-day upcoming fixtures from ESPN
   try {
-    const live = await withTimeout(fetchLiveESPNMatches({ sport: 'all', includeNextDays: false }), 4500, 'Live ESPN timeout');
+    const live = await withTimeout(fetchLiveESPNMatches({ sport: 'all', includeNextDays: true, forceRefresh: true }), 9000, 'Live ESPN timeout');
     for (const lm of live) {
       upsertMatchIntoStore(lm);
     }
@@ -925,15 +967,15 @@ Return ONLY a valid JSON array of Match objects with the following exact structu
 
     let parsedMatches: Match[] = [];
 
-    // Step 1: Check real-time ESPN scoreboard schedule first (exact today/upcoming dates, kickoff times, records & odds)
+    // Step 1: Check real-time 7-day ESPN scoreboard schedule first (exact today/upcoming dates, kickoff times, records & odds)
     try {
       const liveMatches = await withTimeout(
         fetchLiveESPNMatches({
           sport,
           query,
-          includeNextDays: Boolean(query && query.trim().length > 1),
+          includeNextDays: true,
         }),
-        6500,
+        9500,
         'Live ESPN feed timeout'
       );
       if (liveMatches.length > 0) {
@@ -1362,19 +1404,7 @@ async function startServer() {
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`ApexMatch AI Server running at http://0.0.0.0:${PORT}`);
-    // Hydrate today's real live fixtures across UEFA, domestic leagues, NBA & NFL cleanly in background
-    fetchLiveESPNMatches({ sport: 'all', includeNextDays: false })
-      .then((live) => {
-        for (const m of live) {
-          upsertMatchIntoStore(m);
-        }
-        if (live.length > 0) {
-          console.log(`Hydrated ${live.length} live upcoming fixtures from real-time scoreboard.`);
-        }
-      })
-      .catch((err) => {
-        console.warn('Background live fixture hydration skipped:', err?.message);
-      });
+    startInitialLiveHydration();
   });
 }
 

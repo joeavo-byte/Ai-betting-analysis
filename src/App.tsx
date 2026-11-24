@@ -505,59 +505,93 @@ export default function App() {
         // Search Query Filter
         if (!q) return true;
 
-        const homeName = m.homeTeam.name.toLowerCase();
-        const homeShort = (m.homeTeam.shortName || '').toLowerCase();
-        const homeLeague = (m.homeTeam.league || '').toLowerCase();
-        const homeCoach = (m.homeTeam.coach || '').toLowerCase();
-        const awayName = m.awayTeam.name.toLowerCase();
-        const awayShort = (m.awayTeam.shortName || '').toLowerCase();
-        const awayLeague = (m.awayTeam.league || '').toLowerCase();
-        const awayCoach = (m.awayTeam.coach || '').toLowerCase();
-        const tournament = m.tournament.toLowerCase();
-        const round = (m.roundOrStage || '').toLowerCase();
-        const sportName = m.sport.toLowerCase();
-        const headline = m.headline.toLowerCase();
-        const venue = (m.venue || '').toLowerCase();
-        const city = (m.city || '').toLowerCase();
-        const country = (m.country || '').toLowerCase();
+        const stripAccents = (s: string) =>
+          s
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '');
+
+        const qNorm = stripAccents(q);
+        const homeName = stripAccents(m.homeTeam.name);
+        const homeShort = stripAccents(m.homeTeam.shortName || '');
+        const homeLeague = stripAccents(m.homeTeam.league || '');
+        const homeCoach = stripAccents(m.homeTeam.coach || '');
+        const awayName = stripAccents(m.awayTeam.name);
+        const awayShort = stripAccents(m.awayTeam.shortName || '');
+        const awayLeague = stripAccents(m.awayTeam.league || '');
+        const awayCoach = stripAccents(m.awayTeam.coach || '');
+        const tournament = stripAccents(m.tournament);
+        const round = stripAccents(m.roundOrStage || '');
+        const sportName = stripAccents(m.sport);
+        const headline = stripAccents(m.headline);
+        const venue = stripAccents(m.venue || '');
+        const city = stripAccents(m.city || '');
+        const country = stripAccents(m.country || '');
 
         const playerMatch = [
-          ...m.homeTeam.keyPlayers.map((p) => p.name.toLowerCase()),
-          ...m.awayTeam.keyPlayers.map((p) => p.name.toLowerCase()),
-        ].some((pName) => pName.includes(q));
+          ...m.homeTeam.keyPlayers.map((p) => stripAccents(p.name)),
+          ...m.awayTeam.keyPlayers.map((p) => stripAccents(p.name)),
+        ].some((pName) => pName.includes(qNorm));
+
+        const aliasMap: Record<string, string[]> = {
+          psg: ['paris saint-germain', 'paris sg'],
+          'man utd': ['manchester united'],
+          'man united': ['manchester united'],
+          'man city': ['manchester city'],
+          spurs: ['tottenham', 'tottenham hotspur'],
+          barca: ['barcelona'],
+          inter: ['internazionale', 'inter milan'],
+          atleti: ['atletico madrid'],
+          juve: ['juventus'],
+          wolves: ['wolverhampton'],
+          gladbach: ['monchengladbach'],
+          bilbao: ['athletic club', 'athletic bilbao'],
+          bayern: ['bayern munich'],
+          bvb: ['borussia dortmund', 'dortmund'],
+          villa: ['aston villa'],
+          roma: ['as roma'],
+          milan: ['ac milan'],
+        };
+
+        const sideMatchesToken = (teamFull: string, teamShort: string, token: string) => {
+          const candidates = [token, ...(aliasMap[token] || [])];
+          return candidates.some((c) => teamFull.includes(c) || teamShort === c || teamShort.includes(c));
+        };
 
         const matchupForward = `${homeName} vs ${awayName}`;
         const matchupReverse = `${awayName} vs ${homeName}`;
         const matchupSpace = `${homeName} ${awayName}`;
 
-        const vsParts = q.split(/\s+(?:vs\.?|v\.?|against|@|-)\s+/i).map((s) => s.trim()).filter(Boolean);
+        const vsParts = qNorm.split(/\s+(?:vs\.?|v\.?|against|@|-)\s+/i).map((s) => s.trim()).filter(Boolean);
         const vsPairMatch =
           vsParts.length >= 2 &&
-          ((homeName.includes(vsParts[0]) || homeShort.includes(vsParts[0])) &&
-            (awayName.includes(vsParts[1]) || awayShort.includes(vsParts[1])) ||
-            (homeName.includes(vsParts[1]) || homeShort.includes(vsParts[1])) &&
-              (awayName.includes(vsParts[0]) || awayShort.includes(vsParts[0])));
+          ((sideMatchesToken(homeName, homeShort, vsParts[0]) && sideMatchesToken(awayName, awayShort, vsParts[1])) ||
+            (sideMatchesToken(homeName, homeShort, vsParts[1]) && sideMatchesToken(awayName, awayShort, vsParts[0])));
+
+        const singleAliasMatch =
+          (aliasMap[qNorm] || []).some((alias) => homeName.includes(alias) || awayName.includes(alias));
 
         return (
           vsPairMatch ||
-          homeName.includes(q) ||
-          homeShort.includes(q) ||
-          homeLeague.includes(q) ||
-          homeCoach.includes(q) ||
-          awayName.includes(q) ||
-          awayShort.includes(q) ||
-          awayLeague.includes(q) ||
-          awayCoach.includes(q) ||
-          matchupForward.includes(q) ||
-          matchupReverse.includes(q) ||
-          matchupSpace.includes(q) ||
-          tournament.includes(q) ||
-          round.includes(q) ||
-          sportName.includes(q) ||
-          headline.includes(q) ||
-          venue.includes(q) ||
-          city.includes(q) ||
-          country.includes(q) ||
+          singleAliasMatch ||
+          homeName.includes(qNorm) ||
+          homeShort.includes(qNorm) ||
+          homeLeague.includes(qNorm) ||
+          homeCoach.includes(qNorm) ||
+          awayName.includes(qNorm) ||
+          awayShort.includes(qNorm) ||
+          awayLeague.includes(qNorm) ||
+          awayCoach.includes(qNorm) ||
+          matchupForward.includes(qNorm) ||
+          matchupReverse.includes(qNorm) ||
+          matchupSpace.includes(qNorm) ||
+          tournament.includes(qNorm) ||
+          round.includes(qNorm) ||
+          sportName.includes(qNorm) ||
+          headline.includes(qNorm) ||
+          venue.includes(qNorm) ||
+          city.includes(qNorm) ||
+          country.includes(qNorm) ||
           playerMatch
         );
       })
@@ -964,7 +998,7 @@ export default function App() {
                   className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs rounded-xl border border-stone-800 transition-all cursor-pointer flex items-center gap-1.5"
                 >
                   <RefreshCw className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Load All 20+ League Matches</span>
+                  <span>Sync Full Live League Slate</span>
                 </button>
                 <button
                   onClick={() => {

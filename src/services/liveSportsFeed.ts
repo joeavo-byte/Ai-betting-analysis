@@ -142,27 +142,74 @@ function normalizeTeamTokens(name: string): string[] {
     .filter((t) => t.length >= 2 && !['fc', 'cf', 'ac', 'sc', 'sv', 'fk', 'as', 'us', 'ss', 'afc'].includes(t));
 }
 
-function teamMatchesQuerySide(teamName: string, shortName: string, sideQuery: string): boolean {
-  const qNorm = sideQuery
+const TEAM_QUERY_ALIASES: Record<string, string[]> = {
+  psg: ['paris saint-germain', 'paris sg'],
+  'paris saint-germain': ['psg'],
+  'man utd': ['manchester united'],
+  'man united': ['manchester united'],
+  utd: ['united'],
+  'man city': ['manchester city'],
+  spurs: ['tottenham', 'tottenham hotspur'],
+  tottenham: ['spurs'],
+  barca: ['barcelona'],
+  barcelona: ['barca'],
+  inter: ['internazionale', 'inter milan'],
+  internazionale: ['inter', 'inter milan'],
+  atleti: ['atletico madrid', 'atletico'],
+  'atletico madrid': ['atleti'],
+  juve: ['juventus'],
+  wolves: ['wolverhampton'],
+  gladbach: ['monchengladbach'],
+  bilbao: ['athletic club', 'athletic bilbao'],
+  'athletic club': ['athletic bilbao', 'bilbao'],
+  bayern: ['bayern munich'],
+  bvb: ['borussia dortmund', 'dortmund'],
+  dortmund: ['borussia dortmund', 'bvb'],
+  villa: ['aston villa'],
+  roma: ['as roma'],
+  'as roma': ['roma'],
+  milan: ['ac milan'],
+  'real': ['real madrid'],
+  fenerbahce: ['fenerbahçe'],
+  bodo: ['bodo/glimt', 'bodø/glimt'],
+  sporting: ['sporting cp', 'sporting lisbon'],
+};
+
+function expandQueryAliases(raw: string): string[] {
+  const norm = raw
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .trim();
-  if (!qNorm) return true;
+  const variants = new Set<string>([norm]);
+  for (const [alias, targets] of Object.entries(TEAM_QUERY_ALIASES)) {
+    if (norm === alias || norm.includes(alias)) {
+      targets.forEach((t) => variants.add(t));
+    }
+  }
+  return Array.from(variants);
+}
+
+function teamMatchesQuerySide(teamName: string, shortName: string, sideQuery: string): boolean {
+  const variants = expandQueryAliases(sideQuery);
   const fullNorm = teamName
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '');
   const shortNorm = shortName.toLowerCase();
 
-  if (fullNorm.includes(qNorm) || qNorm.includes(fullNorm) || shortNorm === qNorm) {
-    return true;
+  for (const qNorm of variants) {
+    if (!qNorm) return true;
+    if (fullNorm.includes(qNorm) || qNorm.includes(fullNorm) || shortNorm === qNorm) {
+      return true;
+    }
+    const qTokens = normalizeTeamTokens(qNorm);
+    const nameTokens = normalizeTeamTokens(fullNorm);
+    if (qTokens.length > 0 && qTokens.every((qt) => nameTokens.some((nt) => nt.includes(qt) || qt.includes(nt)))) {
+      return true;
+    }
   }
-
-  const qTokens = normalizeTeamTokens(qNorm);
-  const nameTokens = normalizeTeamTokens(fullNorm);
-  if (qTokens.length === 0) return false;
-  return qTokens.every((qt) => nameTokens.some((nt) => nt.includes(qt) || qt.includes(nt)));
+  return false;
 }
 
 function convertESPNEventToMatch(event: any, feed: ESPNFeedSpec): Match | null {
@@ -373,58 +420,53 @@ function getDateParam(offsetDays: number): string {
   return `${y}${m}${day}`;
 }
 
+let liveFeedCache: { timestamp: number; matches: Match[] } | null = null;
+const LIVE_CACHE_TTL_MS = 3 * 60 * 1000;
+
+async function fetchBatchedUrls(
+  urlsToFetch: Array<{ url: string; feed: ESPNFeedSpec }>,
+  concurrency = 16
+): Promise<Array<{ data: any; feed: ESPNFeedSpec }>> {
+  const results: Array<{ data: any; feed: ESPNFeedSpec }> = [];
+  for (let i = 0; i < urlsToFetch.length; i += concurrency) {
+    const chunk = urlsToFetch.slice(i, i + concurrency);
+    const chunkRes = await Promise.all(
+      chunk.map(async ({ url, feed }) => ({
+        data: await fetchFeedURL(url, 4500),
+        feed,
+      }))
+    );
+    results.push(...chunkRes);
+  }
+  return results;
+}
+
 export async function fetchLiveESPNMatches(options?: {
   sport?: string;
   query?: string;
   includeNextDays?: boolean;
+  forceRefresh?: boolean;
 }): Promise<Match[]> {
   const sportFilter = options?.sport || 'all';
   const rawQ = (options?.query || '').trim();
   const lowerQ = rawQ.toLowerCase();
 
-  // Select relevant ESPN feeds
-  let feedsToQuery = ESPN_FEEDS.filter((f) => sportFilter === 'all' || f.sport === sportFilter);
+  const now = Date.now();
+  let allLiveMatches: Match[] = [];
 
-  // If query targets specific league, prioritize that feed first; if team query, query UEFA + top leagues
-  if (lowerQ) {
-    if (lowerQ.includes('champions') || lowerQ.includes('ucl')) {
-      feedsToQuery = ESPN_FEEDS.filter((f) => f.sportPath.includes('uefa.champions'));
-    } else if (lowerQ.includes('europa league') || lowerQ.includes('uel')) {
-      feedsToQuery = ESPN_FEEDS.filter((f) => f.sportPath.includes('uefa.europa') && !f.sportPath.includes('conf'));
-    } else if (lowerQ.includes('conference') || lowerQ.includes('uecl')) {
-      feedsToQuery = ESPN_FEEDS.filter((f) => f.sportPath.includes('uefa.europa.conf'));
-    } else if (lowerQ.includes('nations')) {
-      feedsToQuery = ESPN_FEEDS.filter((f) => f.sportPath.includes('uefa.nations'));
-    } else if (lowerQ.includes('premier') || lowerQ.includes('epl')) {
-      feedsToQuery = ESPN_FEEDS.filter((f) => f.sportPath === 'soccer/eng.1');
-    } else if (lowerQ.includes('la liga')) {
-      feedsToQuery = ESPN_FEEDS.filter((f) => f.sportPath === 'soccer/esp.1');
-    } else if (lowerQ.includes('serie a')) {
-      feedsToQuery = ESPN_FEEDS.filter((f) => f.sportPath === 'soccer/ita.1');
-    } else if (lowerQ.includes('bundesliga')) {
-      feedsToQuery = ESPN_FEEDS.filter((f) => f.sportPath === 'soccer/ger.1');
-    } else if (lowerQ.includes('ligue 1')) {
-      feedsToQuery = ESPN_FEEDS.filter((f) => f.sportPath === 'soccer/fra.1');
-    } else if (lowerQ.includes('nba')) {
-      feedsToQuery = ESPN_FEEDS.filter((f) => f.sport === 'basketball');
-    } else if (lowerQ.includes('nfl')) {
-      feedsToQuery = ESPN_FEEDS.filter((f) => f.sport === 'american_football');
-    }
-    if (feedsToQuery.length === 0) {
-      feedsToQuery = ESPN_FEEDS;
-    }
-  }
+  // Use fresh cache if fetching general/cached slate unless explicitly forced
+  if (!options?.forceRefresh && liveFeedCache && now - liveFeedCache.timestamp < LIVE_CACHE_TTL_MS) {
+    allLiveMatches = liveFeedCache.matches.filter((m) => sportFilter === 'all' || m.sport === sportFilter);
+  } else {
+    // Always fetch full 7-day window cleanly in batches so weekend EPL/La Liga/Serie A/Bundesliga/Ligue 1 & midweek UEFA fixtures are complete
+    const urlsToFetch: Array<{ url: string; feed: ESPNFeedSpec }> = [];
+    const dayOffsets = [0, 1, 2, 3, 4, 5, 6];
 
-  // Build URLs: default scoreboard + today & tomorrow (and +2 days when searching specific matches)
-  const urlsToFetch: Array<{ url: string; feed: ESPNFeedSpec }> = [];
-  const dayOffsets = options?.includeNextDays ? [0, 1, 2, 3] : [0, 1];
-
-  for (const feed of feedsToQuery) {
-    urlsToFetch.push({
-      url: `https://site.api.espn.com/apis/site/v2/sports/${feed.sportPath}/scoreboard`,
-      feed,
-    });
-    if (options?.includeNextDays || feed.sportPath.includes('uefa.champions')) {
+    for (const feed of ESPN_FEEDS) {
+      urlsToFetch.push({
+        url: `https://site.api.espn.com/apis/site/v2/sports/${feed.sportPath}/scoreboard`,
+        feed,
+      });
       for (const offset of dayOffsets) {
         urlsToFetch.push({
           url: `https://site.api.espn.com/apis/site/v2/sports/${feed.sportPath}/scoreboard?dates=${getDateParam(offset)}`,
@@ -432,35 +474,34 @@ export async function fetchLiveESPNMatches(options?: {
         });
       }
     }
-  }
 
-  const payloads = await Promise.all(
-    urlsToFetch.map(async ({ url, feed }) => ({
-      data: await fetchFeedURL(url, 4500),
-      feed,
-    }))
-  );
+    const payloads = await fetchBatchedUrls(urlsToFetch, 16);
+    const seenEventIds = new Set<string>();
+    const collected: Match[] = [];
 
-  const seenEventIds = new Set<string>();
-  const allLiveMatches: Match[] = [];
-
-  for (const { data, feed } of payloads) {
-    if (!data?.events || !Array.isArray(data.events)) continue;
-    for (const ev of data.events) {
-      if (!ev?.id || seenEventIds.has(String(ev.id))) continue;
-      seenEventIds.add(String(ev.id));
-      const match = convertESPNEventToMatch(ev, feed);
-      if (match) {
-        allLiveMatches.push(match);
+    for (const { data, feed } of payloads) {
+      if (!data?.events || !Array.isArray(data.events)) continue;
+      for (const ev of data.events) {
+        if (!ev?.id || seenEventIds.has(String(ev.id))) continue;
+        seenEventIds.add(String(ev.id));
+        const match = convertESPNEventToMatch(ev, feed);
+        if (match) {
+          collected.push(match);
+        }
       }
     }
+
+    if (collected.length > 0) {
+      liveFeedCache = { timestamp: Date.now(), matches: collected };
+    }
+    allLiveMatches = collected.filter((m) => sportFilter === 'all' || m.sport === sportFilter);
   }
 
   if (!lowerQ || lowerQ === 'all' || lowerQ === 'sync-all') {
     return allLiveMatches;
   }
 
-  // Filter live matches against query ("Real Madrid vs Psv", "UEFA Champions League", "Arsenal", etc.)
+  // Filter live matches against query ("PSG vs AS Roma", "Man Utd vs Brentford", "UEFA Champions League", etc.)
   const cleanQ = rawQ.replace(/^(match|game|fixture|derby|showdown|who will win|predict)\s+/i, '').trim();
   const vsParts = cleanQ.split(/\s+(?:vs\.?|v\.?|against|@|-)\s+/i).map((s) => s.trim()).filter(Boolean);
 
@@ -476,15 +517,16 @@ export async function fetchLiveESPNMatches(options?: {
       return forward || reverse;
     }
 
-    const q = lowerQ;
+    const qNorm = lowerQ
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+
     return (
-      m.homeTeam.name.toLowerCase().includes(q) ||
-      m.homeTeam.shortName.toLowerCase().includes(q) ||
-      m.awayTeam.name.toLowerCase().includes(q) ||
-      m.awayTeam.shortName.toLowerCase().includes(q) ||
-      m.tournament.toLowerCase().includes(q) ||
-      m.homeTeam.league.toLowerCase().includes(q) ||
-      m.awayTeam.league.toLowerCase().includes(q)
+      teamMatchesQuerySide(m.homeTeam.name, m.homeTeam.shortName, cleanQ) ||
+      teamMatchesQuerySide(m.awayTeam.name, m.awayTeam.shortName, cleanQ) ||
+      m.tournament.toLowerCase().includes(qNorm) ||
+      m.homeTeam.league.toLowerCase().includes(qNorm) ||
+      m.awayTeam.league.toLowerCase().includes(qNorm)
     );
   });
 
