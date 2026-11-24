@@ -530,7 +530,16 @@ export default function App() {
         const matchupReverse = `${awayName} vs ${homeName}`;
         const matchupSpace = `${homeName} ${awayName}`;
 
+        const vsParts = q.split(/\s+(?:vs\.?|v\.?|against|@|-)\s+/i).map((s) => s.trim()).filter(Boolean);
+        const vsPairMatch =
+          vsParts.length >= 2 &&
+          ((homeName.includes(vsParts[0]) || homeShort.includes(vsParts[0])) &&
+            (awayName.includes(vsParts[1]) || awayShort.includes(vsParts[1])) ||
+            (homeName.includes(vsParts[1]) || homeShort.includes(vsParts[1])) &&
+              (awayName.includes(vsParts[0]) || awayShort.includes(vsParts[0])));
+
         return (
+          vsPairMatch ||
           homeName.includes(q) ||
           homeShort.includes(q) ||
           homeLeague.includes(q) ||

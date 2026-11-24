@@ -8,6 +8,8 @@ import { INITIAL_MATCHES, INITIAL_TRACK_RECORD } from './src/data/initialMatches
 import { EXPANDED_FIXTURE_LIBRARY } from './src/data/fixtureLibrary.ts';
 import { computeStatisticalPrediction, reconcilePredictionWithQuantEngine } from './src/services/statisticalPredictor.ts';
 import { calculateTeamStrength, compareTeamFormAndStrength } from './src/services/teamStrengthHelper.ts';
+import { fetchLiveESPNMatches } from './src/services/liveSportsFeed.ts';
+import { findClubProfile, buildPlayersFromClub, buildTierStrengthForClub } from './src/services/teamClubCatalog.ts';
 import type { Match, AIPrediction, PredictionTrackRecord } from './src/types.ts';
 
 dotenv.config();
@@ -123,29 +125,170 @@ function isQuotaOrRateLimitError(err: any): boolean {
   );
 }
 
-// Synthesizes a realistic Match for any queried team or rivalry with accurate league, players & stats
+// Upserts a match into matchesStore by ID or normalized team pairing, refreshing live dates/odds/predictions
+function upsertMatchIntoStore(incoming: Match): Match {
+  const m: Match = structuredClone(incoming);
+  if (!m.homeTeam.strength) {
+    m.homeTeam.strength = calculateTeamStrength(m.homeTeam, m.sport);
+  }
+  if (!m.awayTeam.strength) {
+    m.awayTeam.strength = calculateTeamStrength(m.awayTeam, m.sport);
+  }
+  m.prediction = computeStatisticalPrediction(m);
+
+  const norm = (s: string) =>
+    s
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\b(fc|cf|sc|afc|sv|fk|eindhoven|rotterdam|amsterdam)\b/g, '')
+      .replace(/[^a-z0-9\s]/g, '')
+      .trim();
+
+  const newHome = norm(m.homeTeam.name);
+  const newAway = norm(m.awayTeam.name);
+
+  const existingIdx = matchesStore.findIndex((existing) => {
+    if (existing.id === m.id) return true;
+    const exHome = norm(existing.homeTeam.name);
+    const exAway = norm(existing.awayTeam.name);
+    const homeSame = exHome === newHome || exHome.includes(newHome) || newHome.includes(exHome);
+    const awaySame = exAway === newAway || exAway.includes(newAway) || newAway.includes(exAway);
+    return homeSame && awaySame;
+  });
+
+  if (existingIdx >= 0) {
+    const existing = matchesStore[existingIdx];
+    const updated: Match = {
+      ...existing,
+      date: m.date,
+      time: m.time || existing.time,
+      venue: m.venue || existing.venue,
+      city: m.city || existing.city,
+      country: m.country || existing.country,
+      tournament: m.tournament || existing.tournament,
+      roundOrStage: m.roundOrStage || existing.roundOrStage,
+      headline: m.headline || existing.headline,
+      marketOdds: m.marketOdds || existing.marketOdds,
+      homeTeam: {
+        ...existing.homeTeam,
+        name: m.homeTeam.name || existing.homeTeam.name,
+        shortName: m.homeTeam.shortName || existing.homeTeam.shortName,
+        logo: m.homeTeam.logo?.includes('espncdn') ? m.homeTeam.logo : existing.homeTeam.logo,
+        recentForm: m.homeTeam.recentForm?.length ? m.homeTeam.recentForm : existing.homeTeam.recentForm,
+        recordSummary: m.homeTeam.recordSummary || existing.homeTeam.recordSummary,
+        keyPlayers: m.homeTeam.keyPlayers?.length ? m.homeTeam.keyPlayers : existing.homeTeam.keyPlayers,
+        strength: m.homeTeam.strength || existing.homeTeam.strength,
+      },
+      awayTeam: {
+        ...existing.awayTeam,
+        name: m.awayTeam.name || existing.awayTeam.name,
+        shortName: m.awayTeam.shortName || existing.awayTeam.shortName,
+        logo: m.awayTeam.logo?.includes('espncdn') ? m.awayTeam.logo : existing.awayTeam.logo,
+        recentForm: m.awayTeam.recentForm?.length ? m.awayTeam.recentForm : existing.awayTeam.recentForm,
+        recordSummary: m.awayTeam.recordSummary || existing.awayTeam.recordSummary,
+        keyPlayers: m.awayTeam.keyPlayers?.length ? m.awayTeam.keyPlayers : existing.awayTeam.keyPlayers,
+        strength: m.awayTeam.strength || existing.awayTeam.strength,
+      },
+    };
+    updated.prediction = computeStatisticalPrediction(updated);
+    matchesStore[existingIdx] = updated;
+    return updated;
+  }
+
+  matchesStore.unshift(m);
+  return m;
+}
+
+// Synthesizes a realistic Match for any queried team or rivalry using verified club ratings, stadiums, players & strength
 function generateDynamicMatch(sport: string, query: string): Match {
   const cleanQ = query.replace(/^(match|game|fixture|derby|showdown|who will win|predict)\s+/i, '').trim();
   const vsParts = cleanQ.split(/\s+(?:vs\.?|v\.?|against|@|-)\s+/i);
   let homeName = vsParts[0]?.trim() || 'Home Contenders';
   let awayName = vsParts[1]?.trim() || '';
 
-  let detectedSport: Match['sport'] = (sport as any) || 'football';
+  const homeClub = findClubProfile(homeName);
+  const awayClub = awayName ? findClubProfile(awayName) : undefined;
+
+  if (homeClub) homeName = homeClub.canonicalName;
+  if (awayClub) awayName = awayClub.canonicalName;
+
+  let detectedSport: Match['sport'] = sport && sport !== 'all' ? (sport as Match['sport']) : 'football';
   let tournament = 'International Showcase';
-  let homeLeague = 'Top Flight Championship';
-  let awayLeague = 'Top Flight Championship';
-  let country = 'Global';
+  let homeLeague = homeClub?.league || 'Top Flight Championship';
+  let awayLeague = awayClub?.league || 'Top Flight Championship';
+  let country = homeClub?.country || 'Global';
 
   const lowerQ = cleanQ.toLowerCase();
 
-  if (lowerQ.includes('serie a') || lowerQ.includes('juventus') || lowerQ.includes('inter') || lowerQ.includes('milan') || lowerQ.includes('roma') || lowerQ.includes('napoli') || lowerQ.includes('lazio') || lowerQ.includes('atalanta')) {
+  // Check explicit UEFA competitions OR cross-country European club clashes BEFORE assuming domestic league!
+  const isCrossCountryEuropeanClash =
+    homeClub && awayClub && homeClub.country !== awayClub.country && detectedSport === 'football';
+
+  if (lowerQ.includes('europa league') || lowerQ.includes('uel')) {
+    detectedSport = 'football';
+    tournament = 'UEFA Europa League';
+    country = 'Europe';
+    if (!awayName) awayName = homeName.toLowerCase().includes('united') ? 'Fenerbahçe' : 'AS Roma';
+  } else if (lowerQ.includes('conference league') || lowerQ.includes('uecl')) {
+    detectedSport = 'football';
+    tournament = 'UEFA Conference League';
+    country = 'Europe';
+    if (!awayName) awayName = homeName.toLowerCase().includes('chelsea') ? 'Fiorentina' : 'Chelsea';
+  } else if (lowerQ.includes('nations league') || lowerQ.includes('unl')) {
+    detectedSport = 'football';
+    tournament = 'UEFA Nations League';
+    homeLeague = 'UEFA Nations League A';
+    awayLeague = 'UEFA Nations League A';
+    country = 'Europe';
+    if (!awayName) awayName = homeName.toLowerCase().includes('france') ? 'Italy' : 'Portugal';
+  } else if (lowerQ.includes('champions league') || lowerQ.includes('ucl') || lowerQ.includes('uefa') || isCrossCountryEuropeanClash) {
+    detectedSport = 'football';
+    tournament = 'UEFA Champions League';
+    country = homeClub?.country || 'Europe';
+    if (!awayName) awayName = homeName.toLowerCase().includes('madrid') ? 'Liverpool' : 'Real Madrid';
+  } else if (lowerQ.includes('nba') || lowerQ.includes('lakers') || lowerQ.includes('warriors') || lowerQ.includes('celtics') || lowerQ.includes('nuggets') || lowerQ.includes('bucks') || lowerQ.includes('knicks') || lowerQ.includes('basketball')) {
+    detectedSport = 'basketball';
+    tournament = 'NBA Showcase';
+    homeLeague = 'NBA Eastern / Western Conference';
+    awayLeague = 'NBA Eastern / Western Conference';
+    country = 'USA';
+    if (!awayName) awayName = homeName.toLowerCase().includes('lakers') ? 'Golden State Warriors' : 'Los Angeles Lakers';
+  } else if (lowerQ.includes('tennis') || lowerQ.includes('wimbledon') || lowerQ.includes('slam') || lowerQ.includes('alcaraz') || lowerQ.includes('sinner') || lowerQ.includes('djokovic') || lowerQ.includes('medvedev')) {
+    detectedSport = 'tennis';
+    tournament = 'Grand Slam Championship';
+    homeLeague = 'ATP / WTA Tour';
+    awayLeague = 'ATP / WTA Tour';
+    if (!awayName) awayName = homeName.toLowerCase().includes('alcaraz') ? 'Jannik Sinner' : 'Carlos Alcaraz';
+  } else if (lowerQ.includes('nfl') || lowerQ.includes('chiefs') || lowerQ.includes('49ers') || lowerQ.includes('ravens') || lowerQ.includes('bills')) {
+    detectedSport = 'american_football';
+    tournament = 'NFL Primetime';
+    homeLeague = 'NFL';
+    awayLeague = 'NFL';
+    country = 'USA';
+    if (!awayName) awayName = homeName.toLowerCase().includes('chiefs') ? 'San Francisco 49ers' : 'Kansas City Chiefs';
+  } else if (homeClub && awayClub && homeClub.country === awayClub.country) {
+    detectedSport = 'football';
+    tournament =
+      homeClub.country === 'Spain'
+        ? 'La Liga'
+        : homeClub.country === 'England'
+        ? 'Premier League'
+        : homeClub.country === 'Italy'
+        ? 'Serie A'
+        : homeClub.country === 'Germany'
+        ? 'Bundesliga'
+        : homeClub.country === 'France'
+        ? 'Ligue 1'
+        : 'Domestic League';
+  } else if (lowerQ.includes('serie a') || lowerQ.includes('juventus') || lowerQ.includes('inter') || lowerQ.includes('milan') || lowerQ.includes('roma') || lowerQ.includes('napoli')) {
     detectedSport = 'football';
     tournament = 'Serie A';
     homeLeague = 'Italian Serie A';
     awayLeague = 'Italian Serie A';
     country = 'Italy';
     if (!awayName) awayName = homeName.toLowerCase().includes('juventus') ? 'Inter Milan' : 'Juventus';
-  } else if (lowerQ.includes('la liga') || lowerQ.includes('madrid') || lowerQ.includes('barcelona') || lowerQ.includes('atletico') || lowerQ.includes('sevilla') || lowerQ.includes('athletic')) {
+  } else if (lowerQ.includes('la liga') || lowerQ.includes('madrid') || lowerQ.includes('barcelona') || lowerQ.includes('atletico') || lowerQ.includes('sevilla')) {
     detectedSport = 'football';
     tournament = 'La Liga';
     homeLeague = 'Spanish La Liga';
@@ -166,153 +309,101 @@ function generateDynamicMatch(sport: string, query: string): Match {
     awayLeague = 'English Premier League';
     country = 'England';
     if (!awayName) awayName = homeName.toLowerCase().includes('arsenal') ? 'Chelsea' : 'Arsenal';
-  } else if (lowerQ.includes('nba') || lowerQ.includes('lakers') || lowerQ.includes('warriors') || lowerQ.includes('celtics') || lowerQ.includes('nuggets') || lowerQ.includes('bucks') || lowerQ.includes('knicks') || lowerQ.includes('basketball')) {
-    detectedSport = 'basketball';
-    tournament = 'NBA Showcase';
-    homeLeague = 'NBA Western / Eastern Conference';
-    awayLeague = 'NBA Western / Eastern Conference';
-    country = 'USA';
-    if (!awayName) awayName = homeName.toLowerCase().includes('lakers') ? 'Golden State Warriors' : 'Los Angeles Lakers';
-  } else if (lowerQ.includes('tennis') || lowerQ.includes('wimbledon') || lowerQ.includes('slam') || lowerQ.includes('alcaraz') || lowerQ.includes('sinner') || lowerQ.includes('djokovic') || lowerQ.includes('medvedev')) {
-    detectedSport = 'tennis';
-    tournament = 'Grand Slam Championship';
-    homeLeague = 'ATP / WTA Tour';
-    awayLeague = 'ATP / WTA Tour';
-    if (!awayName) awayName = homeName.toLowerCase().includes('alcaraz') ? 'Jannik Sinner' : 'Carlos Alcaraz';
-  } else if (lowerQ.includes('europa league') || lowerQ.includes('uel') || lowerQ.includes('fenerbahce') || lowerQ.includes('fenerbahçe') || lowerQ.includes('porto') || lowerQ.includes('galatasaray')) {
-    detectedSport = 'football';
-    tournament = 'UEFA Europa League';
-    homeLeague = 'UEFA Europa League';
-    awayLeague = 'UEFA Europa League';
-    country = 'Europe';
-    if (!awayName) awayName = homeName.toLowerCase().includes('united') ? 'Fenerbahçe' : 'AS Roma';
-  } else if (lowerQ.includes('conference league') || lowerQ.includes('uecl') || lowerQ.includes('fiorentina') || lowerQ.includes('panathinaikos') || lowerQ.includes('betis')) {
-    detectedSport = 'football';
-    tournament = 'UEFA Conference League';
-    homeLeague = 'UEFA Conference League';
-    awayLeague = 'UEFA Conference League';
-    country = 'Europe';
-    if (!awayName) awayName = homeName.toLowerCase().includes('chelsea') ? 'Fiorentina' : 'Chelsea';
-  } else if (lowerQ.includes('nations league') || lowerQ.includes('unl')) {
-    detectedSport = 'football';
-    tournament = 'UEFA Nations League';
-    homeLeague = 'UEFA Nations League A';
-    awayLeague = 'UEFA Nations League A';
-    country = 'Europe';
-    if (!awayName) awayName = homeName.toLowerCase().includes('france') ? 'Italy' : 'Portugal';
-  } else if (lowerQ.includes('champions league') || lowerQ.includes('ucl') || lowerQ.includes('uefa')) {
-    detectedSport = 'football';
-    tournament = 'UEFA Champions League';
-    homeLeague = 'UEFA Champions League';
-    awayLeague = 'UEFA Champions League';
-    country = 'Europe';
-    if (!awayName) awayName = homeName.toLowerCase().includes('madrid') ? 'Liverpool' : 'Real Madrid';
-  } else if (lowerQ.includes('nfl') || lowerQ.includes('chiefs') || lowerQ.includes('49ers') || lowerQ.includes('ravens') || lowerQ.includes('bills')) {
-    detectedSport = 'american_football';
-    tournament = 'NFL Primetime';
-    homeLeague = 'NFL';
-    awayLeague = 'NFL';
-    country = 'USA';
-    if (!awayName) awayName = homeName.toLowerCase().includes('chiefs') ? 'San Francisco 49ers' : 'Kansas City Chiefs';
   }
 
   if (!awayName) {
     awayName = 'All-Star Challengers';
   }
 
-  const formatName = (str: string) => str.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
-  homeName = formatName(homeName);
-  awayName = formatName(awayName);
+  const formatName = (str: string) =>
+    str
+      .split(' ')
+      .map((w) => (w.length <= 3 && w === w.toUpperCase() ? w : w.charAt(0).toUpperCase() + w.slice(1)))
+      .join(' ');
+  if (!homeClub) homeName = formatName(homeName);
+  if (!awayClub) awayName = formatName(awayName);
 
-  const homeShort = homeName.slice(0, 3).toUpperCase();
-  const awayShort = awayName.slice(0, 3).toUpperCase();
+  const homeShort = homeClub?.shortName || homeName.slice(0, 3).toUpperCase();
+  const awayShort = awayClub?.shortName || awayName.slice(0, 3).toUpperCase();
+
+  const homeForm: ('W' | 'D' | 'L')[] =
+    homeClub && homeClub.tierStrength.overall >= 90 ? ['W', 'W', 'W', 'D', 'W'] : ['W', 'D', 'W', 'L', 'W'];
+  const awayForm: ('W' | 'D' | 'L')[] =
+    awayClub && awayClub.tierStrength.overall >= 90 ? ['W', 'W', 'D', 'W', 'W'] : ['W', 'L', 'W', 'D', 'L'];
+
+  const homeRecord =
+    homeClub && homeClub.tierStrength.overall >= 90 ? '14W - 2D - 1L' : '9W - 4D - 4L';
+  const awayRecord =
+    awayClub && awayClub.tierStrength.overall >= 90 ? '13W - 3D - 1L' : '8W - 4D - 5L';
+
+  const homeStrength = buildTierStrengthForClub(homeClub, homeForm, homeRecord);
+  const awayStrength = buildTierStrengthForClub(awayClub, awayForm, awayRecord);
 
   const generatedMatch: Match = {
     id: `m-dyn-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
     sport: detectedSport,
     tournament,
-    roundOrStage: 'Featured Showdown',
-    date: new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0],
-    time: '19:45 Local Time',
-    venue: `${homeName} Arena`,
-    city: 'Metropolitan Arena',
+    roundOrStage: isCrossCountryEuropeanClash ? 'League Phase / Knockout Clash' : 'Featured Showdown',
+    date: getTodayISO(0),
+    time: '20:00 UTC',
+    venue: homeClub?.stadium || `${homeName} Stadium`,
+    city: homeClub?.city || 'Host City',
     country,
-    importanceScore: 95,
-    headline: `High Stakes Showdown: ${homeName} vs ${awayName} Tactical Clash`,
+    importanceScore: isCrossCountryEuropeanClash ? 96 : 92,
+    headline: `${tournament}: ${homeName} vs ${awayName} Tactical Clash`,
     homeTeam: {
       id: `team-${homeShort.toLowerCase()}`,
       name: homeName,
       shortName: homeShort,
       logo: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=128&auto=format&fit=crop&q=80',
-      primaryColor: '#1E40AF',
-      secondaryColor: '#F59E0B',
+      primaryColor: homeClub?.primaryColor || '#1E40AF',
+      secondaryColor: homeClub?.secondaryColor || '#F59E0B',
       league: homeLeague,
-      ranking: 'Top Tier Contender',
-      recentForm: ['W', 'W', 'D', 'W', 'W'],
-      recordSummary: 'High-efficiency form',
-      tacticalStyle: 'Territorial dominance, rapid vertical ball progression, targeted set-piece delivery',
-      coach: 'Tactical Director',
-      keyPlayers: [
-        {
-          id: `p-${homeShort}-1`,
-          name: `${homeName} Star Playmaker`,
-          position: detectedSport === 'basketball' ? 'Point Guard' : detectedSport === 'tennis' ? 'Singles Pro' : 'Lead Playmaker',
-          number: 10,
-          avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80',
-          nationality: country,
-          form: ['W', 'W', 'W', 'D', 'W'],
-          rating: 8.9,
-          keyMetrics: { 'Impact Rating': 9.1, 'Conversion': '68%' },
-          radarStats: { attack: 94, defense: 68, clutch: 93, consistency: 91, stamina: 92, tactical: 94 },
-          injuryStatus: 'healthy',
-          recentPerformances: [{ opponent: 'Recent Contender', score: 'Won', statSummary: 'Dominant MVP Performance', rating: 9.2, date: '2026-05-01' }],
-          historicalNotes: 'Proven match-winner with high clutch rating in marquee matchups.'
-        }
-      ]
+      ranking: homeClub?.ranking || 'Contender',
+      recentForm: homeForm,
+      recordSummary: homeRecord,
+      tacticalStyle: homeClub?.tacticalStyle || 'Territorial dominance, vertical ball progression, targeted set-piece delivery',
+      coach: homeClub?.coach || 'Head Coach',
+      keyPlayers: buildPlayersFromClub(homeClub, homeName, detectedSport),
+      ...(homeStrength ? { strength: homeStrength } : {}),
     },
     awayTeam: {
       id: `team-${awayShort.toLowerCase()}`,
       name: awayName,
       shortName: awayShort,
       logo: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=128&auto=format&fit=crop&q=80',
-      primaryColor: '#DC2626',
-      secondaryColor: '#FFFFFF',
+      primaryColor: awayClub?.primaryColor || '#DC2626',
+      secondaryColor: awayClub?.secondaryColor || '#FFFFFF',
       league: awayLeague,
-      ranking: 'Elite Contender',
-      recentForm: ['W', 'W', 'W', 'L', 'W'],
-      recordSummary: 'Aggressive road record',
-      tacticalStyle: 'Fast transition surges, high turnover conversion, physical duel engagement',
-      coach: 'Head Tactician',
-      keyPlayers: [
-        {
-          id: `p-${awayShort}-1`,
-          name: `${awayName} Star Finisher`,
-          position: detectedSport === 'basketball' ? 'Center' : detectedSport === 'tennis' ? 'Singles Pro' : 'Lead Striker',
-          number: 9,
-          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-          nationality: country,
-          form: ['W', 'W', 'W', 'L', 'W'],
-          rating: 8.8,
-          keyMetrics: { 'Impact Rating': 8.9, 'Conversion': '65%' },
-          radarStats: { attack: 92, defense: 60, clutch: 90, consistency: 89, stamina: 90, tactical: 88 },
-          injuryStatus: 'healthy',
-          recentPerformances: [{ opponent: 'Recent Contender', score: 'Won', statSummary: 'High-Impact Performance', rating: 8.9, date: '2026-05-01' }],
-          historicalNotes: 'Dangerous offensive threat who exploits opposing defensive lapses.'
-        }
-      ]
+      ranking: awayClub?.ranking || 'Challenger',
+      recentForm: awayForm,
+      recordSummary: awayRecord,
+      tacticalStyle: awayClub?.tacticalStyle || 'Compact defensive block and fast wide counter-attacks',
+      coach: awayClub?.coach || 'Head Coach',
+      keyPlayers: buildPlayersFromClub(awayClub, awayName, detectedSport),
+      ...(awayStrength ? { strength: awayStrength } : {}),
     },
     headToHead: {
-      totalPlayed: 8,
-      homeWins: 4,
-      awayWins: 3,
+      totalPlayed: 6,
+      homeWins: homeClub && awayClub && homeClub.tierStrength.overall > awayClub.tierStrength.overall + 5 ? 4 : 3,
+      awayWins: homeClub && awayClub && homeClub.tierStrength.overall > awayClub.tierStrength.overall + 5 ? 1 : 2,
       draws: 1,
       lastMeetings: [
-        { date: '2025-11-15', homeScore: 2, awayScore: 1, winner: 'home', competition: tournament, topPerformer: `${homeName} Star Playmaker` }
-      ]
+        {
+          date: getTodayISO(-180),
+          homeScore: 2,
+          awayScore: 1,
+          winner: 'home',
+          competition: tournament,
+          topPerformer: homeClub?.stars[0]?.name || `${homeName} Leader`,
+        },
+      ],
     },
-    isCustom: true
+    isCustom: true,
   };
 
+  generatedMatch.homeTeam.strength = calculateTeamStrength(generatedMatch.homeTeam, generatedMatch.sport);
+  generatedMatch.awayTeam.strength = calculateTeamStrength(generatedMatch.awayTeam, generatedMatch.sport);
   generatedMatch.prediction = computeStatisticalPrediction(generatedMatch);
   return generatedMatch;
 }
@@ -662,8 +753,8 @@ app.get('/api/payment/transactions', (req, res) => {
   });
 });
 
-// POST /api/matches/sync-all - Instantly populates matchesStore with the complete 20+ fixture slate across all leagues
-app.post('/api/matches/sync-all', (_req, res) => {
+// POST /api/matches/sync-all - Syncs live ESPN matches + expanded fixture library across all leagues
+app.post('/api/matches/sync-all', async (_req, res) => {
   const seedMap = new Map<string, Match>();
   for (const m of matchesStore) {
     seedMap.set(`${m.homeTeam.name.toLowerCase()} vs ${m.awayTeam.name.toLowerCase()}`, m);
@@ -675,13 +766,22 @@ app.post('/api/matches/sync-all', (_req, res) => {
       m.date = ensureUpcomingDate(m.date, m.id || key);
       if (!m.homeTeam.strength) m.homeTeam.strength = calculateTeamStrength(m.homeTeam, m.sport);
       if (!m.awayTeam.strength) m.awayTeam.strength = calculateTeamStrength(m.awayTeam, m.sport);
-      if (!m.prediction || !m.prediction.formAndStrength) {
-        m.prediction = computeStatisticalPrediction(m);
-      }
+      m.prediction = computeStatisticalPrediction(m);
       seedMap.set(key, m);
     }
   }
   matchesStore = Array.from(seedMap.values());
+
+  // Also merge live today/upcoming fixtures from ESPN
+  try {
+    const live = await withTimeout(fetchLiveESPNMatches({ sport: 'all', includeNextDays: false }), 4500, 'Live ESPN timeout');
+    for (const lm of live) {
+      upsertMatchIntoStore(lm);
+    }
+  } catch (err) {
+    console.warn('Live ESPN sync during sync-all skipped:', (err as any)?.message);
+  }
+
   res.json({
     success: true,
     count: matchesStore.length,
@@ -825,38 +925,66 @@ Return ONLY a valid JSON array of Match objects with the following exact structu
 
     let parsedMatches: Match[] = [];
 
-    // Attempt 1: Gemini Flash with Google Search Grounding (allow 15s for real-time schedule lookup)
+    // Step 1: Check real-time ESPN scoreboard schedule first (exact today/upcoming dates, kickoff times, records & odds)
     try {
-      const response = await withTimeout(
-        ai.models.generateContent({
-          model: 'gemini-3.8-flash',
-          contents: prompt,
-          config: {
-            tools: [{ googleSearch: {} }],
-          },
+      const liveMatches = await withTimeout(
+        fetchLiveESPNMatches({
+          sport,
+          query,
+          includeNextDays: Boolean(query && query.trim().length > 1),
         }),
-        15000,
-        'Gemini Search timeout'
+        6500,
+        'Live ESPN feed timeout'
       );
-      parsedMatches = extractJSON<Match[]>(response.text, []);
-    } catch (searchErr: any) {
-      if (isQuotaOrRateLimitError(searchErr) || searchErr?.message?.includes('timeout')) {
-        console.warn('Gemini 3.8 Search rate limit/quota/timeout reached. Attempting lite model fallback...');
-        try {
-          const liteResponse = await withTimeout(
-            ai.models.generateContent({
-              model: 'gemini-3.1-flash-lite',
-              contents: prompt,
-            }),
-            7000,
-            'Gemini Lite timeout'
-          );
-          parsedMatches = extractJSON<Match[]>(liteResponse.text, []);
-        } catch (liteErr) {
-          console.warn('Gemini API quota exhausted across models. Using verified sports intelligence bank.');
+      if (liveMatches.length > 0) {
+        for (const lm of liveMatches) {
+          upsertMatchIntoStore(lm);
         }
-      } else {
-        console.warn('Primary search call encountered error, proceeding to sports library:', searchErr?.message);
+        return res.json({
+          success: true,
+          count: liveMatches.length,
+          matches: matchesStore,
+          message: `Synced ${liveMatches.length} live verified fixture(s) with real kickoff dates & odds.`,
+        });
+      }
+    } catch (liveErr: any) {
+      console.warn('Live ESPN lookup skipped:', liveErr?.message);
+    }
+
+    // Step 2: Gemini 4 Hydrogen with Google Search Grounding for queries beyond ESPN's current matchday (e.g. Tennis / distant fixtures)
+    if (process.env.GEMINI_API_KEY) {
+      try {
+        const response = await withTimeout(
+          ai.models.generateContent({
+            model: 'gemini-4-hydrogen',
+            contents: prompt,
+            config: {
+              tools: [{ googleSearch: {} }],
+            },
+          }),
+          15000,
+          'Gemini Search timeout'
+        );
+        parsedMatches = extractJSON<Match[]>(response.text, []);
+      } catch (searchErr: any) {
+        if (isQuotaOrRateLimitError(searchErr) || searchErr?.message?.includes('timeout')) {
+          console.warn('Gemini 4 Hydrogen Search rate limit/quota/timeout reached. Attempting lite fallback...');
+          try {
+            const liteResponse = await withTimeout(
+              ai.models.generateContent({
+                model: 'gemini-3.1-flash-lite',
+                contents: prompt,
+              }),
+              7000,
+              'Gemini Lite timeout'
+            );
+            parsedMatches = extractJSON<Match[]>(liteResponse.text, []);
+          } catch (liteErr) {
+            console.warn('Gemini API fallback exhausted. Using verified sports intelligence bank.');
+          }
+        } else {
+          console.warn('Primary search call encountered error, proceeding to sports library:', searchErr?.message);
+        }
       }
     }
 
@@ -868,53 +996,8 @@ Return ONLY a valid JSON array of Match objects with the following exact structu
         if (!m.sport || (m.sport as string) === 'all') m.sport = (sport === 'all' ? 'football' : sport) as any;
         m.date = ensureUpcomingDate(m.date, `${m.homeTeam.name}-${m.awayTeam.name}`);
         m.isCustom = true;
-        m.homeTeam.strength = calculateTeamStrength(m.homeTeam, m.sport);
-        m.awayTeam.strength = calculateTeamStrength(m.awayTeam, m.sport);
-        m.prediction = computeStatisticalPrediction(m);
-
-        const newHome = m.homeTeam.name.toLowerCase();
-        const newAway = m.awayTeam.name.toLowerCase();
-        const existingIdx = matchesStore.findIndex((existing) => {
-          const exHome = existing.homeTeam.name.toLowerCase();
-          const exAway = existing.awayTeam.name.toLowerCase();
-          return (
-            existing.id === m.id ||
-            (exHome === newHome && exAway === newAway) ||
-            ((exHome.includes(newHome) || newHome.includes(exHome)) &&
-              (exAway.includes(newAway) || newAway.includes(exAway)))
-          );
-        });
-
-        if (existingIdx >= 0) {
-          // Refresh existing matchup with live verified schedule date, time, venue, and predictions
-          const existing = matchesStore[existingIdx];
-          matchesStore[existingIdx] = {
-            ...existing,
-            date: m.date,
-            time: m.time || existing.time,
-            venue: m.venue || existing.venue,
-            tournament: m.tournament || existing.tournament,
-            roundOrStage: m.roundOrStage || existing.roundOrStage,
-            headline: m.headline || existing.headline,
-            homeTeam: {
-              ...existing.homeTeam,
-              recentForm: m.homeTeam.recentForm?.length ? m.homeTeam.recentForm : existing.homeTeam.recentForm,
-              recordSummary: m.homeTeam.recordSummary || existing.homeTeam.recordSummary,
-              strength: m.homeTeam.strength,
-            },
-            awayTeam: {
-              ...existing.awayTeam,
-              recentForm: m.awayTeam.recentForm?.length ? m.awayTeam.recentForm : existing.awayTeam.recentForm,
-              recordSummary: m.awayTeam.recordSummary || existing.awayTeam.recordSummary,
-              strength: m.awayTeam.strength,
-            },
-          };
-          matchesStore[existingIdx].prediction = computeStatisticalPrediction(matchesStore[existingIdx]);
-          syncedCount++;
-        } else {
-          matchesStore.unshift(m);
-          syncedCount++;
-        }
+        upsertMatchIntoStore(m);
+        syncedCount++;
       }
       return res.json({
         success: true,
@@ -924,15 +1007,12 @@ Return ONLY a valid JSON array of Match objects with the following exact structu
       });
     }
 
-    // Attempt 3: High-fidelity Sports Intelligence Bank Fallback
+    // Step 3: High-fidelity Sports Intelligence Bank Fallback
     const fallbackMatches = getFallbackMatchesForQuery(sport, query);
     let addedCount = 0;
     for (const m of fallbackMatches) {
-      const exists = matchesStore.some((existing) => existing.homeTeam.name === m.homeTeam?.name && existing.awayTeam.name === m.awayTeam?.name);
-      if (!exists) {
-        matchesStore.unshift(m);
-        addedCount++;
-      }
+      upsertMatchIntoStore(m);
+      addedCount++;
     }
 
     return res.json({
@@ -946,10 +1026,7 @@ Return ONLY a valid JSON array of Match objects with the following exact structu
     console.warn('Gracefully recovered from fetch error:', error?.message);
     const fallbackMatches = getFallbackMatchesForQuery(sport, query);
     for (const m of fallbackMatches) {
-      const exists = matchesStore.some((existing) => existing.homeTeam.name === m.homeTeam?.name && existing.awayTeam.name === m.awayTeam?.name);
-      if (!exists) {
-        matchesStore.unshift(m);
-      }
+      upsertMatchIntoStore(m);
     }
     return res.json({
       success: true,
@@ -1124,7 +1201,7 @@ Run your predictive model and return the structured JSON prediction.`;
     try {
       const response = await withTimeout(
         ai.models.generateContent({
-          model: 'gemini-3.8-flash',
+          model: 'gemini-4-hydrogen',
           contents: [
             { role: 'user', parts: [{ text: userPrompt }] }
           ],
@@ -1205,7 +1282,7 @@ Provide a structured JSON breakdown:
 
       const response = await withTimeout(
         ai.models.generateContent({
-          model: 'gemini-3.8-flash',
+          model: 'gemini-4-hydrogen',
           contents: prompt,
           config: {
             responseMimeType: 'application/json',
@@ -1285,6 +1362,19 @@ async function startServer() {
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`ApexMatch AI Server running at http://0.0.0.0:${PORT}`);
+    // Hydrate today's real live fixtures across UEFA, domestic leagues, NBA & NFL cleanly in background
+    fetchLiveESPNMatches({ sport: 'all', includeNextDays: false })
+      .then((live) => {
+        for (const m of live) {
+          upsertMatchIntoStore(m);
+        }
+        if (live.length > 0) {
+          console.log(`Hydrated ${live.length} live upcoming fixtures from real-time scoreboard.`);
+        }
+      })
+      .catch((err) => {
+        console.warn('Background live fixture hydration skipped:', err?.message);
+      });
   });
 }
 

@@ -58,6 +58,16 @@ function parsePublicRankingRating(team: TeamData): number {
  * or player duel adjustments.
  */
 export function computeMarketImpliedProbabilities(match: Match): MarketImpliedProbabilities {
+  if (match.marketOdds && typeof match.marketOdds.home === 'number' && typeof match.marketOdds.away === 'number') {
+    return {
+      home: match.marketOdds.home,
+      away: match.marketOdds.away,
+      ...(match.sport === 'football' && match.marketOdds.draw !== undefined
+        ? { draw: match.marketOdds.draw }
+        : {}),
+    };
+  }
+
   const homePublic = parsePublicRankingRating(match.homeTeam);
   const awayPublic = parsePublicRankingRating(match.awayTeam);
 

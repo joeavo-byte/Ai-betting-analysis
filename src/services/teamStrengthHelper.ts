@@ -1,4 +1,5 @@
 import type { TeamData, TeamStrength, FormAndStrengthBreakdown, Match } from '../types.ts';
+import { findClubProfile, buildTierStrengthForClub } from './teamClubCatalog.ts';
 
 interface ParsedRecord {
   winRate: number;        // 0 - 1
@@ -168,6 +169,15 @@ export function calculateTeamStrength(
       momentum: team.strength.momentum || momentum,
       formStreakSummary: team.strength.formStreakSummary || formStreakSummary,
     };
+  }
+
+  // Check verified club catalog baseline when strength is not explicitly set
+  if (!team.strength && !hasCustomAbsences) {
+    const clubMatch = findClubProfile(team.name);
+    const catalogStr = buildTierStrengthForClub(clubMatch, team.recentForm, team.recordSummary);
+    if (catalogStr) {
+      return catalogStr;
+    }
   }
 
   // 1. Recency-weighted Form Index (0 - 100)
@@ -462,31 +472,42 @@ export function compareTeamFormAndStrength(
   let awayXG = 1.1;
 
   if (sport === 'football') {
-    // Log-exponential Dixon-Coles style scoring intensity calibrated to ~2.6-3.0 total xG in elite ties
-    const baseLeagueGoalAvg = 1.12;
-    const homeAtkDiff = (homeStrength.attack - awayStrength.defense) / 40;
-    const awayAtkDiff = (awayStrength.attack - homeStrength.defense) / 40;
+    // Log-exponential Dixon-Coles scoring intensity calibrated for realistic football xG ceilings
+    const baseLeagueGoalAvg = 1.18;
+    const homeAtkDiff = (homeStrength.attack - awayStrength.defense) / 30;
+    const awayAtkDiff = (awayStrength.attack - homeStrength.defense) / 30;
+    const overallEdge = (homeStrength.overall - awayStrength.overall) / 65;
 
-    const homeFormMult = 0.86 + (homeStrength.formIndex / 100) * 0.28;
-    const awayFormMult = 0.86 + (awayStrength.formIndex / 100) * 0.28;
+    const homeFormMult = 0.85 + (homeStrength.formIndex / 100) * 0.30;
+    const awayFormMult = 0.85 + (awayStrength.formIndex / 100) * 0.30;
 
     let rawHomeXG =
-      baseLeagueGoalAvg * Math.exp(homeAtkDiff) * homeFormMult * homeVenueMult * homeSplitMult * weatherScoringMult;
+      baseLeagueGoalAvg *
+      Math.exp(homeAtkDiff + overallEdge) *
+      homeFormMult *
+      homeVenueMult *
+      homeSplitMult *
+      weatherScoringMult;
     let rawAwayXG =
-      baseLeagueGoalAvg * Math.exp(awayAtkDiff) * awayFormMult * awayVenueMult * awaySplitMult * weatherScoringMult;
+      baseLeagueGoalAvg *
+      Math.exp(awayAtkDiff - overallEdge) *
+      awayFormMult *
+      awayVenueMult *
+      awaySplitMult *
+      weatherScoringMult;
 
-    // Slight blend (14%) with authentic historical H2H goal rate if available
+    // Slight blend (12%) with authentic historical H2H goal rate if available
     if (headToHead?.lastMeetings && headToHead.lastMeetings.length >= 2) {
       const avgH2HHome =
         headToHead.lastMeetings.reduce((acc, m) => acc + (m.homeScore || 0), 0) / headToHead.lastMeetings.length;
       const avgH2HAway =
         headToHead.lastMeetings.reduce((acc, m) => acc + (m.awayScore || 0), 0) / headToHead.lastMeetings.length;
-      rawHomeXG = rawHomeXG * 0.86 + avgH2HHome * 0.14;
-      rawAwayXG = rawAwayXG * 0.86 + avgH2HAway * 0.14;
+      rawHomeXG = rawHomeXG * 0.88 + avgH2HHome * 0.12;
+      rawAwayXG = rawAwayXG * 0.88 + avgH2HAway * 0.12;
     }
 
-    homeXG = Math.round(Math.min(3.6, Math.max(0.45, rawHomeXG)) * 100) / 100;
-    awayXG = Math.round(Math.min(3.3, Math.max(0.35, rawAwayXG)) * 100) / 100;
+    homeXG = Math.round(Math.min(2.95, Math.max(0.45, rawHomeXG)) * 100) / 100;
+    awayXG = Math.round(Math.min(2.65, Math.max(0.35, rawAwayXG)) * 100) / 100;
   } else if (sport === 'basketball') {
     const leagueBasePts = 111.5;
     const homeEdgePts =

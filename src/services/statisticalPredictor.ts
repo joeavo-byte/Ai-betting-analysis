@@ -197,15 +197,30 @@ export function computeStatisticalPrediction(match: Match, customModifiers?: any
       winnerName = winner === 'home' ? home.name : away.name;
     }
 
-    // Choose the highest-frequency simulated scoreline consistent with the predicted winner!
-    const matchingOutcome = sortedScores.find((entry) => {
-      const [hStr, aStr] = entry.score.split(' - ');
-      const h = parseInt(hStr, 10);
-      const a = parseInt(aStr, 10);
-      if (winner === 'home') return h > a;
-      if (winner === 'away') return a > h;
-      return h === a;
-    });
+    // Choose the highest-frequency simulated scoreline consistent with predicted winner AND xG tier
+    const matchingOutcome =
+      sortedScores.find((entry) => {
+        const [hStr, aStr] = entry.score.split(' - ');
+        const h = parseInt(hStr, 10);
+        const a = parseInt(aStr, 10);
+        if (winner === 'home') {
+          if (lambdaHome >= 2.15 && lambdaHome - lambdaAway >= 1.0 && h < 2) return false;
+          return h > a;
+        }
+        if (winner === 'away') {
+          if (lambdaAway >= 2.15 && lambdaAway - lambdaHome >= 1.0 && a < 2) return false;
+          return a > h;
+        }
+        return h === a;
+      }) ||
+      sortedScores.find((entry) => {
+        const [hStr, aStr] = entry.score.split(' - ');
+        const h = parseInt(hStr, 10);
+        const a = parseInt(aStr, 10);
+        if (winner === 'home') return h > a;
+        if (winner === 'away') return a > h;
+        return h === a;
+      });
 
     if (matchingOutcome) {
       const [hStr, aStr] = matchingOutcome.score.split(' - ');
@@ -631,7 +646,7 @@ export function reconcilePredictionWithQuantEngine(
       ...(match.sport === 'football' ? { drawPct: probDraw } : {}),
     },
     timestamp: new Date().toISOString(),
-    modelUsed: 'Gemini 3.8 Flash + Calibrated Poisson/Form Engine (1,000 Sims)',
+    modelUsed: 'Gemini 4 Hydrogen + Calibrated Poisson/Form Engine (1,000 Sims)',
     ...(customModifiers ? { customModifiersApplied: customModifiers } : {}),
   };
 }

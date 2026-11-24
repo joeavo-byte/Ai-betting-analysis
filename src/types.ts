@@ -155,6 +155,14 @@ export interface Match {
   awayTeam: TeamData;
   headToHead: HeadToHeadHistory;
   prediction?: AIPrediction;
+  marketOdds?: {
+    home: number;
+    away: number;
+    draw?: number;
+    overUnder?: number;
+    spread?: string;
+    provider?: string;
+  };
   isCustom?: boolean;
 }
 
